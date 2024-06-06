@@ -1,1 +1,2 @@
-# Portfolio
+# Data Analytics Portfolio
+**Seunggyun Shin**
