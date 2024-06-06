@@ -1,0 +1,471 @@
+---
+title: "Diet's Effect on Covid-19 Confirmed Cases"
+output: pdf_document
+author: Team Coreanos
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+**Spring 2021, Stat 425**
+
+**May, 11, 2021**
+
+
+
+
+
+Minwoo Sung: modeling
+
+Yeonchul Choi: data handling & cleaning
+
+Seunggyun Shin: Final report & analysis
+
+
+\newpage
+## Introduction
+  This project focuses on the analysis of effects of food diet on Covid-19 death rate. In this data set, there is different types of food, world population obesity, undernourished rate, Covid-19 statistics. This projects will inspect how a healthy eating style or specific diet pattern can help to defeat Covid-19 virus. The food data is provided in kcal showing the energy intake. Percentage of confirmed Rate of Covid-19 virus will be predicted using these features to find if the specific diet pattern can decrease or increase the confirmed rate. This food data is obtained from Food and Agriculture Organization of the United Nations FAO website. Data for population count for each country came from Population Reference Bureau PRB website. Covid-19 related data are obtained from Johns Hopkins Center for Systems Science and ENgineering CSSE website.  
+
+- *Alcoholic Beverages*:    Alcohol, Non-Food; Beer; Beverages, Alcoholic; Beverages, Fermented; Wine
+- *Animal Fats*:    Butter, Ghee; Cream; Fats, Animals, Raw; Fish, Body Oil; Fish, Liver Oil
+- *Animal Products*:    Aquatic Animals, Others; Aquatic Plants; Bovine Meat; Butter, Ghee; Cephalopods; Cream; Crustaceans; Demersal Fish; Eggs; Fats, Animals, Raw; Fish, Body Oil; Fish, Liver Oil; Freshwater Fish; Marine Fish, Other; Meat, Aquatic Mammals; Meat, Other; Milk -                      Excluding Butter; Molluscs, Other; Mutton & Goat Meat; Offals, Edible; Pelagic Fish; Pigmeat; Poultry Meat
+- *Aquatic Products, Other*:    Aquatic Animals, Others; Aquatic Plants; Meat, Aquatic Mammals
+- *Cereals - Excluding Beer*:   Barley and products; Cereals, Other; Maize and products; Millet and products; Oats; Rice (Milled Equivalent); Rye and products; Sorghum and products; Wheat and products
+- *Eggs*: Eggs
+- *Fish, Seafood*:    Cephalopods; Crustaceans; Demersal Fish; Freshwater Fish; Marine Fish, Other; Molluscs, Other; Pelagic Fish
+- *Fruits* - Excluding Wine:    Apples and products; Bananas; Citrus, Other; Dates; Fruits, Other; Grapefruit and products; Grapes and        products (excl wine); Lemons, Limes and products; Oranges, Mandarines; Pineapples and products; Plantains
+- *Meat*:   Bovine Meat; Meat, Other; Mutton & Goat Meat; Pigmeat; Poultry Meat
+- *Milk*:   Excluding Butter	Milk - Excluding Butter
+- *Miscellaneous*:    Infant food; Miscellaneous
+- *edibl*:    Offals, Edible
+- *Oilcrops*:   Coconuts - Incl Copra; Cottonseed; Groundnuts (Shelled Eq); Oilcrops, Other; Olives (including preserved); Palm kernels; Rape and - Mustardseed; Sesame seed; Soyabeans; Sunflower seed
+- *Pulses*:   Beans; Peas; Pulses, Other and products
+- *Spices*:   Cloves; Pepper; Pimento; Spices, Other
+- *Starchy Roots*:    Cassava and products; Potatoes and products; Roots, Other; Sweet potatoes; Yams
+- *Stimulants*:   Cocoa Beans and products; Coffee and products; Tea (including mate)
+- *Sugar & Sweeteners*:   Honey; Sugar (Raw Equivalent); Sugar non-centrifugal; Sweeteners, Other
+- *Sugar Crops*:    Sugar beet; Sugar cane
+- *Treenuts*:   Nuts and products
+- *Vegetable Oils*:   Coconut Oil; Cottonseed Oil; Groundnut Oil; Maize Germ Oil; Oilcrops Oil, Other; Olive Oil; Palm Oil; Palmkernel Oil; Rape and Mustard Oil; Ricebran Oil; Sesameseed Oil; Soyabean Oil; Sunflowerseed Oil
+- *Vegetables*:   Onions; Tomatoes and products; Vegetables, Other
+- *Vegetal Products*:   Alcohol, Non-Food; Apples and products; Bananas; Barley and products; Beans; Beer; Beverages, Alcoholic; Beverages, Fermented; Cassava and products; Cereals, Other; Citrus, Other; Cloves; Cocoa Beans and products; Coconut Oil; Coconuts - Incl Copra; Coffee and products; Cottonseed; Cottonseed Oil; Dates; Fruits, Other; Grapefruit and products; Grapes and products (excl wine); Groundnut Oil; Groundnuts (Shelled Eq); Honey; Infant food; Lemons, Limes and products; Maize and products; Maize Germ Oil; Millet and products; Miscellaneous; Nuts and products; Oats; Oilcrops Oil, Other; Oilcrops, Other; Olive Oil; Olives (including preserved); Onions; Oranges, Mandarines; Palm kernels; Palm Oil; Palmkernel Oil; Peas; Pepper; Pimento; Pineapples and products; Plantains; Potatoes and products; Pulses, Other and products; Rape and Mustard Oil; Rape and Mustardseed; Rice (Milled Equivalent); Ricebran Oil; Roots, Other; Rye and products; Sesame seed; Sesameseed Oil; Sorghum and products; Soyabean Oil; Soyabeans; Spices, Other; Sugar (Raw Equivalent); Sugar beet; Sugar cane; Sugar non-centrifugal; Sunflower seed; Sunflowerseed Oil; Sweet potatoes; Sweeteners, Other; Tea (including mate); Tomatoes and products; Vegetables, Other; Wheat and products; Wine; Yams
+  The report will compare four different models of Linear Regression Model, General Linear Regression, Non-parametric Regression etc. In order for the modeling, the dataset will be split into test and train set. All the analysis process will be done in R. There will be total 4 sections in this report including this introduction section. Section 2 will be Exploratory Data Analysis, Section 3 will be Methodology, and Sectoin 4 will be Discussion and Conclusions. 
+
+## Exploratory Data Analysis
+
+#### NA removal
+```{r, echo=FALSE, results='hide',message=FALSE, error=FALSE, warning=FALSE}
+library(lmtest)
+library(readr)
+library(ggplot2)
+library(faraway)
+library(mlbench)
+library(lattice)
+library(caret)
+library(knitr)
+set.seed(42)
+df <- read.csv("Food_Supply_kcal_Data.csv")
+```
+
+```{r, echo=FALSE, results='hide',message=FALSE, error=FALSE, warning=FALSE}
+death = df$Deaths
+df=df[-c(28,29,30,32)]
+str(df)
+```
+
+```{r, echo=FALSE, results='hide',message=FALSE, error=FALSE, warning=FALSE}
+colSums(is.na(df))
+#Obesity, Undernourished, Deaths,
+df$Undernourished[df$Undernourished == '<2.5'] =0
+df$Undernourished = as.numeric(df$Undernourished)
+df$Undernourished[is.na(df$Undernourished)]= median(df$Undernourished[!is.na(df$Undernourished)])
+df$Obesity[is.na(df$Obesity)]= median(df$Obesity[!is.na(df$Obesity)])
+death[is.na(death)]= median(death[!is.na(death)])
+df$Confirmed[is.na(df$Confirmed)]= median(df$Confirmed[!is.na(df$Confirmed)])
+df$DeathRate = death/df$Confirmed
+
+sum(is.na(df))
+```
+
+In order to use 'Death', 'Confirmed' columns for our predict value ,'Recovered','Active','Unit' which are irrelevant columns were dropped. Since this data might contain some missing values that can cause errors in our analysis, removal of missing value was done. In order to impute these missing values from each dataset, the columns with missing values were observed first, and then the observed missing values were imputed with their medians.
+
+
+
+```{r, echo=FALSE, results='hide',message=FALSE, error=FALSE, warning=FALSE}
+str(df)
+```
+Each features were observed through R code and there was a feature that is not numeric. In order to make our model to fit, the non-numeric variables should be modified into a factor and consider it as a categorical variable. 
+Undernourished feature contains character variable which is not numeric compared to the rest of the data.
+
+```{r, echo=FALSE, results='hide',message=FALSE, error=FALSE, warning=FALSE}
+
+
+df$Undernourished
+df$Undernourished = as.double(df$Undernourished)
+
+df$Undernourished[0< df$Undernourished & df$Undernourished <15] = 1
+df$Undernourished[15<= df$Undernourished & df$Undernourished<30] = 2
+df$Undernourished[30<= df$Undernourished & df$Undernourished<45] = 3
+df$Undernourished[45<= df$Undernourished & df$Undernourished <60] = 4
+df$Undernourished=as.factor(df$Undernourished)
+
+```
+Undernourished had '<2.5' data, which caused it to be not-numeric but a certain rage. Therefore, since we can't find the exact value in that range, the data were split into 5 different portions of ranges, (0,2.5),(2.5,15),(15,30),(30,45),(45,60), and considered as a categorical variable.
+
+
+
+#### Outlier Removal
+
+In order to check if there is an outlier or other influential points that can harm our model, several tests were done.
+
+```{r, echo=FALSE, results='hide',message=FALSE, error=FALSE, warning=FALSE}
+country = df[[1]]
+df=df[-1]
+
+g=lm(Confirmed~.,data=df)
+#cook distance
+c = cooks.distance(g)
+```
+
+```{r, echo=FALSE,out.width="70%"}
+
+halfnorm(c,labs=row.names(df),ylab='cook',main="Figure 1")
+```
+
+Cook distance was checked first in order to find unusual points.
+As we see in the **Figure 1** (Cook distance plot), there is the point 83 is either outliers or high-leverage points or both.
+
+```{r, echo=FALSE, results='hide',message=FALSE, error=FALSE, warning=FALSE}
+#no outliers
+j = rstudent(g)
+qt(.05/(2*170),143)
+sort(abs(j),decreasing=TRUE)[1:15]
+```
+
+And then studentized residuals were checked to do the outlier tests to check if the previous abnormal points are outliers. The Outlier tests by studentized residuals show that those points are not outliers since all the values are lower than 3.711729, which is the critical value we observed using R.
+
+```{r, echo=FALSE, results='hide',message=FALSE, error=FALSE, warning=FALSE}
+#high leverage points
+lev = influence(g)$hat
+lev[lev>2*27/170]
+halfnorm(lev,15,labs=row.names(df),ylab='lev',main="Figure 2")
+
+#cnoclude only 83 is bad high leverage point so remove
+df=df[-83,]
+country=country[-83]
+```
+
+Finally Leverage test was done to see if the points we found are high leverage points and if we should get rid of them.
+As we see on the **Figure 2**(the Leverage tests), those points are high-leverage points and the graph suggests that the data with index 83 is likely the Bad high leverage point so it is removed.
+
+#### Plotting
+
+Visualizing the features were done to check if we can find some relationship between the input features and output feature.
+
+```{r,echo=FALSE,out.width="60%"}
+library(ggplot2)
+ggplot(df,aes(x=Obesity,y=Confirmed)) + geom_point(aes(size=DeathRate))+ggtitle("Figure 3")+
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+**Figure 3** shows as Obesity rate goes up the Probability of Confirmed goes up.
+
+```{r,echo=FALSE,out.width="60%"}
+ggplot(df,aes(x=Undernourished,y=Confirmed)) + geom_boxplot()+ geom_point(aes(size=DeathRate))+ggtitle("Figure 4")+
+  theme(plot.title = element_text(hjust = 0.5)) 
+```
+
+**Figure 4** is the box plots show that Undernourished factor is negatively related with Confirmed probability.
+
+```{r ,echo=FALSE,out.width="60%"}
+ggplot(df,aes(x=Alcoholic.Beverages,y=Confirmed)) + geom_point(aes(size= DeathRate))+ geom_point(aes(size=DeathRate))+ggtitle("Figure 5")+
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+**Figure 5** shows that Alcoholic Beverages factor is positively related with Confirmed probability.
+
+```{r ,echo=FALSE, out.width="60%"}
+ggplot(df, aes(x = Stimulants, y = Confirmed)) + geom_point(aes(size = DeathRate))+ geom_point(aes(size=DeathRate))+ggtitle("Figure 6")+
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+**Figure 6** shows that Stimulants factor is positively related with Confirmed probability.
+
+```{r ,echo=FALSE, out.width="60%"}
+ggplot(df, aes(x = Sugar.Crops, y = Confirmed)) + geom_point(aes(size = DeathRate))+ geom_point(aes(size=DeathRate))+ggtitle("Figure 7")+
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+**Figure 7** shows that Sugar Crops factor does not have significant relationship with Confirmed probability.
+
+#### Correlated Features
+
+
+  Correlated Features were looked up in order to reduce our features for efficiency.
+The high correlated value usually have similar impact on predicting so reducing it will reduce the chance of overfitting and increase efficiency.
+
+```{r, echo=FALSE, results='hide',message=FALSE, error=FALSE, warning=FALSE}
+
+colnames(df)
+confirmed = df[[26]]
+df=df[-26]
+# calculate correlation matrix
+correlationMatrix <- cor(df[-25])
+# summarize the correlation matrix
+print(correlationMatrix)
+# find attributes that are highly corrected (ideally >0.75)
+highlyCorrelated <- findCorrelation(correlationMatrix, cutoff=.75)
+
+# print indexes of highly correlated attributes
+print(highlyCorrelated)
+```
+```{r, echo=FALSE, results='hide',message=FALSE, error=FALSE, warning=FALSE}
+colnames(df[-25])[c(2,21)]
+```
+Highly correlated features were looked up using cutoff of absolute value of correlation of .75. The result was that we should remove column Animal Products and Vegetal Products due to their high correlation to other predictors.
+
+```{r, echo=FALSE, results='hide',message=FALSE, error=FALSE, warning=FALSE}
+df=df[,-c(2,21)]
+under_n=df[['Undernourished']]
+df=df[,-c(3)]
+df
+df$Confirmed = confirmed
+dummy <- dummyVars(" ~ .", data=df)
+df <- data.frame(predict(dummy, newdata = df))
+g=lm(Confirmed~.,df)
+plot(g,which=2, main="Figure 8",adj =0)
+shapiro.test(residuals(g))
+```
+Since p-value is 0.001818, we reject the Null of Shapiro-Wilk normaility test, the normality error assumption doesn't hold yet. 
+```{r, echo=FALSE, results='hide',message=FALSE, error=FALSE, warning=FALSE}
+dwtest(g)
+```
+Since p-value is 0.7626, Durbin-Watson test suggests that there is no auto correlation since we don't reject the Null.
+
+So we tried transformation of response variable confirmed.
+We first tried log transformation, but it still did not pass the test.
+Then, we tried square root transformation and below is the result. 
+
+```{r, echo=FALSE, results='hide',message=FALSE, error=FALSE, warning=FALSE}
+g=lm(Confirmed ^.5 ~.,df)
+plot(g,which=2, main="Figure 9",adj =0)
+```
+```{r, echo=FALSE, results='hide',message=FALSE, error=FALSE, warning=FALSE}
+shapiro.test(residuals(g))
+dwtest(g)
+```
+Since p-value is 0.6009, Shapiro-Wilk normality test suggest that the normality assumption is met.
+Since p-value is 0.7626, we fail to reject and there is no autocorrelation.
+
+## Modeling
+
+```{r, echo=FALSE, results='hide',message=FALSE, error=FALSE, warning=FALSE}
+library(caret)
+train = df
+rmse=function(x,y) sqrt(mean((x-y)^2))
+```
+
+First, we tried the liner regression with all feature variables using cross-validation with 10 folds.
+```{r, echo=FALSE, results='hide',message=FALSE, error=FALSE, warning=FALSE}
+lm = lm(formula = Confirmed^0.5 ~ ., data = train)
+summary(lm)
+```
+```{r, echo=FALSE,message=FALSE, error=FALSE, warning=FALSE}
+lm_table = data.frame(lm=c('Adjusted R-squared','F-statistic','p-value'),metric=c(0.5858 ,9.801 ,2.2e-16))
+kable(lm_table,align='lccrr',caption = 'lm result')
+```
+
+```{r, echo=FALSE, results='hide',message=FALSE, error=FALSE, warning=FALSE}
+cv_idx = caret::createFolds(train$Confirmed,k=10)
+
+calc_lm_fold = function(val_idx){
+  #split
+  est = train[-val_idx,]
+  val = train[val_idx,]
+  
+  #fit model
+  mod = lm(
+  formula = Confirmed^0.5 ~ .,
+  data = est)
+  #make prediction 
+  pred=predict(mod,val)
+  #calculate metric
+  rmse(pred^2,val$Confirmed)
+}
+```
+
+```{r, echo=FALSE, results='hide',message=FALSE, error=FALSE, warning=FALSE}
+mean(sapply(cv_idx,calc_lm_fold))
+```
+
+Average RMSE of linear regression using all feature variables from the cross validation is 1.735572. 
+Since we have 29 features, we decided to reduce the feature by using AIC and BIC. 
+
+```{r, echo=FALSE, results='hide',message=FALSE, error=FALSE, warning=FALSE}
+library(MASS)
+LM <- lm(Confirmed^.5~ .,  data = train)
+LM1 <- lm(Confirmed^.5~ 1, data = train) 
+stepAIC(LM1, direction = "both", scope = list(upper = LM, lower = LM1)) 
+stepAIC(LM1, direction = "both", k = log(nrow(train)), scope = list(upper = LM, lower = LM1)) 
+```
+
+By using AIC and BIC, we found the new models with reduced features.
+
+AIC: Confirmed^0.5 ~ Milk...Excluding.Butter + Obesity + Alcoholic.Beverages + Oilcrops + Treenuts + Offals + Eggs + Miscellaneous + Stimulants,
+    
+BIC: Confirmed^0.5 ~ Milk...Excluding.Butter + Obesity + 
+    Alcoholic.Beverages + Oilcrops + Treenuts + Offals + Eggs
+
+```{r, echo=FALSE, results='hide',message=FALSE, error=FALSE, warning=FALSE}
+aic = lm(formula = Confirmed^0.5 ~ Milk...Excluding.Butter + Obesity + Alcoholic.Beverages + Oilcrops + Treenuts + Offals + Eggs + Miscellaneous + Stimulants, data = train)
+summary(aic)
+```
+```{r, echo=FALSE,message=FALSE, error=FALSE, warning=FALSE}
+aic_table = data.frame(lm=c('Adjusted R-squared','F-statistic','p-value'),metric=c(0.5995,28.94  ,2.2e-16))
+kable(aic_table,align='lccrr',caption = 'aic result')
+```
+
+We used cross validation with our new models with reduced features which are using AIC and BIC.
+```{r, echo=FALSE, results='hide',message=FALSE, error=FALSE, warning=FALSE}
+calc_aic_fold = function(val_idx){
+  #split
+  est = train[-val_idx,]
+  val = train[val_idx,]
+  
+  #fit model
+  mod = lm(
+  formula = Confirmed^0.5 ~ Milk...Excluding.Butter + Obesity + Alcoholic.Beverages + Oilcrops + Treenuts + Offals + Eggs + Miscellaneous + Stimulants,
+  data = est)
+  #make prediction 
+  pred=predict(mod,val)
+  #calculate metric
+  rmse(pred^2,val$Confirmed)
+}
+```
+```{r, echo=FALSE, results='hide',message=FALSE, error=FALSE, warning=FALSE}
+mean(sapply(cv_idx,calc_aic_fold))
+```
+Average RMSE of linear regression using reduced features by AIC from the cross validation is 1.653176. 
+
+```{r, echo=FALSE, results='hide',message=FALSE, error=FALSE, warning=FALSE}
+bic = lm(formula = Confirmed^0.5 ~ Milk...Excluding.Butter + Obesity + 
+    Alcoholic.Beverages + Oilcrops + Treenuts + Offals + Eggs, data = train)
+summary(bic)
+```
+```{r, echo=FALSE,message=FALSE, error=FALSE, warning=FALSE}
+bic_table = data.frame(lm=c('Adjusted R-squared','F-statistic','p-value'),metric=c(0.5769,33.73  ,2.2e-16))
+kable(bic_table,align='lccrr',caption = 'bic result')
+```
+
+```{r, echo=FALSE, results='hide',message=FALSE, error=FALSE, warning=FALSE}
+calc_bic_fold = function(val_idx){
+  #split
+  est = train[-val_idx,]
+  val = train[val_idx,]
+  
+  #fit model
+  mod = lm(
+  formula = Confirmed^0.5 ~ Milk...Excluding.Butter + Obesity + 
+    Alcoholic.Beverages + Oilcrops + Treenuts + Offals + Eggs,
+  data = est)
+  #make prediction 
+  pred=predict(mod,val)
+  #calculate metric
+  rmse(pred^2,val$Confirmed)
+}
+```
+```{r, echo=FALSE, results='hide',message=FALSE, error=FALSE, warning=FALSE}
+mean(sapply(cv_idx,calc_bic_fold))
+```
+
+Average RMSE of linear regression using reduced features by BIC from the cross validation is 1.666308.
+
+
+We tried non-parametric regression which is Lasso regression to see whether fits better.
+We used the same cross validation in Lasso regression.
+```{r, echo=FALSE, results='hide',message=FALSE, error=FALSE, warning=FALSE}
+library(lars)
+```
+
+```{r, echo=FALSE, results='hide',message=FALSE, error=FALSE, warning=FALSE}
+dummy <- dummyVars("~.", data=train)
+newtrain <- data.frame(predict(dummy, newdata = train))
+calc_las_fold = function(val_idx){
+  
+  #split
+  new_est = newtrain[-val_idx,]
+  new_val = newtrain[val_idx,]
+  
+  #fit model
+  modlasso <- lars(as.matrix(new_est[,-29]),(new_est$Confirmed)^.5)
+  cvml<-cv.lars(as.matrix(new_est[,-29]),(new_est$Confirmed)^.5)
+  svm<-cvml$index[which.min(cvml$cv)]
+
+  #make prediction 
+  pred=predict(modlasso,as.matrix(new_val[,-29]),s=svm,mode="fraction")
+  #calculate metric
+  rmse(new_val$Confirmed,(pred$fit)^2)
+}
+```
+```{r, include=FALSE}
+mean(sapply(cv_idx,calc_las_fold))
+```
+
+Average RMSE of Lasso regression from the cross validation is 1.720571.
+
+
+## Discussion of result and Conclusion
+### Result Discussion
+```{r, echo=FALSE, results='hide',message=FALSE, error=FALSE, warning=FALSE}
+aic= lm(formula = Confirmed^0.5 ~ Milk...Excluding.Butter + Obesity + Alcoholic.Beverages + Oilcrops + Treenuts + Offals + Eggs + Miscellaneous + Stimulants, 
+    data = train)
+summary(aic)
+```
+
+For the prediction of COVID-19 effect, we have compared four models: Linear regression model with all the predictors, AIC model, BIC model and Lasso Regression model using RMSE as a comparison parameter. Depending on our testing result(table 4), we found out that AIC model has the lowest RMSE, 
+
+```{r, echo=FALSE,message=FALSE, error=FALSE, warning=FALSE}
+table = data.frame(model=c('lm','AIC','BIC','Lasso'),rmse=c(1.735572,1.653176,1.666308,1.720571))
+kable(table,align='lccrr',caption = 'rmse result')
+```
+
+Therefore, the AIC selected featured linear regression is the best in the prediction of COVID-19 effect.
+
+* AIC model 
+$$\sqrt{Confirmed} = $$ $~ Milk...Excluding.Butter + Obesity + Alcoholic.Beverages + Oilcrops + Treenuts + 
+Offals + Eggs + Miscellaneous + Stimulants$
+
+This means that features: Milk...Excluding.Butter, Obesity, Alcoholic.Beverages, Oilcrops, Treenuts, Offals, Eggs, Miscellaneous, Stimulants have significant effects on the COVID-19 confirmed rate, and we can use the variables above to predict COVID-19 confirmed rate.
+
+### Plots & Tests
+```{r, echo=FALSE, results='hide',message=FALSE, error=FALSE, warning=FALSE}
+par(mfrow = c(2,2))
+plot(aic)
+
+dwtest(aic)
+shapiro.test(resid(aic))
+```
+P-value of Durbin-Watson Test : 0.6461
+
+P-value of Shapiro-Wilk normality test: 0.868
+
+As we cannot observe violation of assumptions from plots and tests, We conclude our final model as an AIC model.
+
+
+### Conclusion
+In addition to selecting our final model to predict the response "Confirmed rate of Covid - 19", through summary of the model, we can find p-values of each predictor, which means how significant each predictor is.
+
+
+```{r, echo=FALSE, message=FALSE, error=FALSE, warning=FALSE}
+table = data.frame("Predictors"=c('Milk(butter X)','Obesity','Alcohol','Oilcrops', 'Treenuts','Offals','Eggs','Miscellaneous','Stimulants'),"P-value"=c(0.00636, "9.34e-06", 0.00147, 0.00857, 0.03399, 0.01209, 0.02316, 0.00413, 0.01327))
+kable(table,align='lccrr',caption = 'P-values of Features')
+```
+
+
+According to Table 5, p-values of each predictor, there are some factors with higher relationship with the response compare to others. Milk(butter X), Obesity, Alcoholic Beverage, Oilcrops and Miscellaneous are those, and among them, Obesity has the especially significant relation with the response.
+
+By focusing on the factors above rather than just conducting vague data collection, it might be possible to save cost and time in research about "What makes people caught COVID-19 easier than others".
+
+Here, we can conclude that appropriately regulating diet related to factors above such as milk, alcohol, oilcrop, treenuts, offals, eggs and stimulants in order to eventually prevent obesity might be helpful in decreasing the possibility to get infected by the virus in current situation of pandemic.
