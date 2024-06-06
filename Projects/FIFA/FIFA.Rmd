@@ -1,0 +1,165 @@
+---
+title: "420 Final Project"
+author: "Team Hanguk"
+date: "12/10/2020"
+output:
+  html_document:
+    theme: default
+    toc: yes
+  pdf_document:
+    toc: yes
+---
+
+```{r, setup, include = TRUE}
+knitr::opts_chunk$set(echo = TRUE, fig.align = 'center')
+```
+
+```{r, load-packages, include = FALSE}
+# load packages
+library("tidyverse")
+library("caret")
+library("lattice")
+library("rpart")
+library('rpart.plot')
+```
+
+```{r read-data, warning = FALSE, message = FALSE}
+# read data
+df = read.csv('fifa.csv')
+```
+
+***
+
+## Abstract
+The analysis was done to find the best model to estimate overall stat of the game "FIFA" characters from various predictors. The ANOVA method was used to find the best fit model.
+
+***
+
+## Introduction 
+The analysis was done using FIFA data found from "Kaggle.com", which includes literally everything you can find in the video game FIFA - such as overall, age, weight, preferred foot and even things like club logo, real face. EA sports, the company of the game, collects and maintains their statistical database of real world soccer players through operating teams with producers, data contributors and volunteers, which makes the game FIFA able to reflect personal abilities of players nearly same with real world (Murphy, 2019). So, this analysis is trying to figure out what factor influences in order to make a "successful soccer player" which the data "Overall" stands for.
+
+
+## method
+The original data file was a huge file with over 16,000 observations of 86 variables, which contains useless and unreadable variables too. So, by using excel and R studio we have cleaned out most of the variables that we don't want to use and created a new data file with 14 variables.
+
+```{r}
+set.seed(42)
+df=df[!df$Value == '€ 0',]
+df=df[!df$Wage == '€ 0',]
+df=df[!df$Release.Clause == '€ 0',]
+df=na.omit(df)
+
+#Pre Feature process
+#Height
+b=strsplit(x = df$Height,split = "'")
+find = function(a){
+  as.double(a[1])*12 + as.double(a[2])
+}
+
+df$Height= sapply(b,find)
+df$Wage=as.numeric(df$Wage)
+df$Value = as.numeric(df$Value)
+df=subset(df,select= -c(Contract.Valid.Until,Nationality))
+df$Jersey.Number = factor(df$Jersey.Number)
+df=df[c(2:14,1)]
+trn_idx = createDataPartition(df$Overall,p=.80,list=TRUE)
+df_trn = df[trn_idx$Resample1,]
+df_tst = df[-trn_idx$Resample1,]
+```
+
+New data file still had factors that can distract the data analysis so through using R studio, we have edited the data. For instance, $€$, $lbs$ unit sign on variables such as "wage" or "weight" could disturb reading the data so we deleted the sign. Also, some of variables had wrong data type so we changed them into correct data type whether numeric or factor. Lastly, there were data inserted with units such as $k$ and $m$, which each means 1,000 and 100,0000. Since two different units were used in the same variable, we had to unify them into numbers.
+
+```{r}
+#Choosing best features using lm
+formula1_lm= paste("Overall~",colnames(df_trn)[1])
+for(i in 1:12){
+  mod1=lm(as.formula(formula1_lm),df_trn)
+  formula2= paste(formula1_lm,colnames(df_trn)[i+1],sep="+")
+  mod2=lm(as.formula(formula2),df_trn)
+  if(anova(mod1,mod2)[6][2,] < .001){
+    formula1_lm = formula2
+  }
+}
+
+formula1_lm
+```
+
+To find out the best fit model we have used the ANOVA test. However, as we cannot test all the variables every time, we have made a function with loop which can test the each variable with ANOVA test and draw an appropriate model.
+
+```{r}
+mod=lm(Overall~.,df_trn)
+modb=lm(Overall~ Value+Wage+Special+International.Reputation+Skill.Moves+Work.Rate+Position+Jersey.Number+Height+Weight,df_trn)
+anova(mod,modb)
+```
+
+We have run ANOVA test between the model we have drawn through the function and the biggest model with all the variables.
+
+Since the p-value of test was .577, we have chosen the smaller model here, and concluded that the model we found is sufficient to predict the response "Overall".
+
+
+```{r}
+#function to calculate absolute error
+calc_absolute_error=function(a,b){
+  mean(abs(a-b))
+}
+#function to calculate rmse
+calc_rmse=function(a,b){
+  mean(sqrt((a-b)^2))
+}
+```
+Absolute error for 2 models
+```{r}
+calc_absolute_error(predict(mod,df_tst),df_tst$Overall)
+calc_absolute_error(predict(modb,df_tst),df_tst$Overall)
+```
+Rmse for 2 models
+```{r}
+calc_rmse(predict(mod,df_tst),df_tst$Overall)
+calc_rmse(predict(modb,df_tst),df_tst$Overall)
+```
+
+However, the model we have chosen did not have significant difference in the absolute error and rmse with the model with all the variables. So, we have created new model using polynomial method. Based on coefficients of variables, we used polynomial on the variables with strong coefficients.
+
+```{r}
+summary(modb)
+```
+
+New model: Overall~ poly(x=Value,degree = 3)+Wage+poly(x=Special,degree = 3)+International.Reputation+poly(x=Skill.Moves,degree = 3)+Work.Rate+Position+Jersey.Number+poly(x=Height,degree = 3)+poly(x=Weight,degree = 3)
+
+```{r}
+modc = lm(Overall~ poly(x=Value,degree = 3)+Wage+poly(x=Special,degree = 3)+International.Reputation+poly(x=Skill.Moves,degree = 3)+Work.Rate+Position+Jersey.Number+poly(x=Height,degree = 3)+poly(x=Weight,degree = 3),df_trn)
+```
+
+```{r}
+anova(modb,modc)
+```
+
+Errors of final model
+```{r}
+calc_absolute_error(predict(modc,df_tst),df_tst$Overall)
+calc_rmse(predict(modc,df_tst),df_tst$Overall)
+```
+ 
+
+## Result
+```{r}
+tb=cbind(c('','mod','modb','modc'),c('absolute error and Rmse',2.3171, 2.317551,1.927731))
+tibble::as_tibble(tb)
+```
+
+As a result, the third model with polynomial variables passed the ANOVA test and had the lowest absolute error and RMSE, which we have anticipated.
+
+## Discussion
+Through ANOVA test and comparing absolute error and RMSE, we could figure out the model with drawn variables and polynomial method used on variables with strong coefficients is the best model to predict the response "Overall". We finalized that Wage, Value, International Reputation, Skill Moves, Height and Weight are important factors to determine the person's overall physical statistics.
+
+##Appendix
+* Website
+- Murphy, R. (2019, September 12). FIFA player ratings explained: How are the card number &amp; stats decided? Retrieved November 12, 2020, from https://www.goal.com/en-ae/news/fifa-player-ratings-explained-how-are-the-card-number-stats/1hszd2fgr7wgf1n2b2yjdpgynu
+
+* Data File
+- Gadiya, K. (2018, December 21). FIFA 19 complete player dataset. Retrieved November 12, 2020, from https://www.kaggle.com/karangadiya/fifa19/discussion
+
+* Book
+- Applied Statistics with R by David Dalpiaz
+
+This project is done by Team HANGUK - Seunggyun Shin, Minwoo Sung, Yeonchul Choi, Joonho Kwak on FALL 2020, in STAT 420, University of Illinois - Urbana Champaign.
