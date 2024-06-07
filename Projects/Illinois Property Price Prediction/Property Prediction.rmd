@@ -1,0 +1,519 @@
+---
+title: "Cook Country Property Price Prediction"
+author: "Seunggyun Shin"
+date: '2023 11 28 '
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+- Running time: By loading the saved final model - 1 minute (Running whole modeling code - 30 minutes)
+
+```{r, message = F, error = F, warning = F}
+#library
+library(tidyverse)
+library(caret)
+library(glmnet)
+library(car)
+library(MASS)
+library(randomForest)
+library(xgboost)
+library(neuralnet)
+```
+
+
+```{r}
+#load data
+df = read.csv("historic_property_data.csv")
+df_pred = read.csv("predict_property_data.csv")
+```
+
+***NA values***
+1. Exclude columns where predict_property has more than 1000 NA values as those columns won't be able to be used in prediction since there is no value provided.
+```{r}
+colSums(is.na(df_pred))[colSums(is.na(df_pred)) > 1000]
+```
+
+```{r}
+df = df %>%
+  dplyr::select(!names(colSums(is.na(df_pred))[colSums(is.na(df_pred)) > 1000]))
+
+df_pred = df_pred %>%
+  dplyr::select(!names(colSums(is.na(df_pred))[colSums(is.na(df_pred)) > 1000]))
+```
+
+2. Check how many rows are left if I drop rows with NA values. If data loss is less than 5 percent, just drop them. It is better to fill NA values with median or mean since it can increase bias and distort correlation between variables. Otherwise, deep exploratory is required to fill NA.
+
+```{r}
+names(colSums(is.na(df))[colSums(is.na(df)) > 0])
+(nrow(df) - nrow(na.omit(df))) / nrow(df)
+```
+As only 2.58 percent of the data was lost, dropping rows with NA is a better way to save time, and increase efficiency of analysis. I will further discuss about how I should handle NA values in predict_property after variable selection for modeling.
+
+```{r}
+df = na.omit(df)
+sum(is.na(df))
+```
+
+***EDA***
+
+1. Data Type
+- Check if column types are correct, and modify columns (e.g. unique values)
+```{r}
+str(df)
+```
+
+- sale_price (target variable)
+- meta_class: Property class (Category)            
+- meta_town_code: Town code (Category)              
+- meta_nbhd: Neihborhood code (Category)
+- meta_certified_est_bldg: Assessor certified estimated market value of building from observation year
+- meta_certified_est_land: Assessor certified estimated market value of land from observation year.
+- meta_deed_type: Deed type of a property sale.
+- char_hd_sf:Square feet of the land (not just the building) of the property. Note that land is divided into 'plots' and 'parcels' - this field applies to parcels, identified by PIN.
+- char_age: Age        
+- char_ext_wall: Wall Material (Category)       
+- char_roof_cnst: Roof Material (Category)            
+- char_rooms: # room                 
+- char_beds: # bedroom              
+- char_bsmt: Basement (Category)                
+- char_bsmt_fin: Basement finish (Category)           
+- char_heat: Central Heating (Category)           
+- char_oheat: Other Heating (Category)            
+- char_air: Central Air Conditioning (Category)             
+- char_frpl: # of Fireplaces           
+- char_attic_type: Attic Type (Category)       
+- char_fbath: # of full bath                
+- char_hbath: # of half bath                
+- char_cnst_qlty: Construction Quality (Category) - need to be modified (Change level)
+- char_site: Site Desirability (Category)            
+- char_gar1_size: Garage 1 Size (Category) - need to be modified (to numeric)         
+- char_ot_impr: Other Improvements (numeric)            
+- char_bldg_sf: Building Square Feet         
+- char_repair_cnd: Repair Condition (Category) - need to be modified (Change level)       
+- char_use: Single family / Multi family (Category) 
+- char_type_resd: Type of Residence (Category) - need to be modified (Reduce categories)         
+- geo_property_city: Property City       
+- geo_property_zip: Zip code
+- geo_tract_pop: Tract Population           
+- geo_white_perc             
+- geo_black_perc            
+- geo_asian_perc            
+- geo_his_perc              
+- geo_other_perc            
+- geo_fips: Municipality FIPS Code (Category)                  
+- geo_municipality: Municipality Name         
+- geo_ohare_noise: O'Hare Noise Indicator (Logical)          
+- geo_floodplain: FEMA Floodplain (Logical)            
+- geo_fs_flood_factor: Flood Risk Factor   
+- geo_fs_flood_risk_direction: Flood Risk Direction (-1 = descreasing, 0 = stationary, 1 = increasing)
+- geo_withinmr100: Road Proximity < 100 Feet (logical)           
+- geo_withinmr101300: Road Proximity 101 - 300 Feet (logical)      
+- geo_school_elem_district: Elementary/Middle School District
+- geo_school_hs_district: High School District    
+- econ_tax_rate: Tax Rate            
+- econ_midincome: Tract Median Income       
+- ind_large_home: Large Home Indicator (logical)          
+- ind_garage: Garage Indicator (logical)              
+- ind_arms_length: logical      
+
+
+```{r}
+df$meta_class = as.character(df$meta_class)
+df$meta_town_code = as.character(df$meta_town_code)
+df$meta_nbhd = as.character(df$meta_nbhd)
+df$char_ext_wall = as.character(df$char_ext_wall)
+df$char_roof_cnst = as.character(df$char_roof_cnst)
+df$char_bsmt = as.character(df$char_bsmt)
+df$char_bsmt_fin = as.character(df$char_bsmt_fin)
+df$char_heat = as.character(df$char_heat)
+df$char_oheat = as.character(df$char_oheat)
+df$char_air = as.character(df$char_air)
+df$char_attic_type = as.character(df$char_attic_type)
+df$char_cnst_qlty = as.character(df$char_cnst_qlty)
+df$char_site = as.character(df$char_site)
+df$char_gar1_size = as.character(df$char_gar1_size)
+df$char_repair_cnd = as.character(df$char_repair_cnd)
+df$char_use = as.character(df$char_use)
+df$char_type_resd = as.character(df$char_type_resd)
+df$geo_fips = as.character(df$geo_fips)
+df$geo_ohare_noise = as.logical(df$geo_ohare_noise)
+df$geo_floodplain = as.logical(df$geo_floodplain)
+df$geo_withinmr100 = as.logical(df$geo_withinmr100)
+df$geo_withinmr101300 = as.logical(df$geo_withinmr101300)
+```
+
+2. Column modification
+```{r}
+#char_cnst_qlty: 1 - Deluxe, 2 - Average, 3 - poor
+#There is no 3 anyway
+
+#1 (Deluxe) should be higher level
+df$char_cnst_qlty = as.factor(df$char_cnst_qlty)
+levels(df$char_cnst_qlty) = c("2", "1")
+
+
+#char_gar1_size	
+#1 - 1 cars
+#2 - 1.5 cars
+#3 - 2 cars
+#4 - 2.5 cars
+#5 - 3 cars
+#6 - 3.5 cars
+#7 - 0 cars
+#8 - 4 cars
+#Change this into numeric depending on how many cars can fit the garage
+df$char_gar1_size[df$char_gar1_size == "2"] = 1.5
+df$char_gar1_size[df$char_gar1_size == "3"] = 2
+df$char_gar1_size[df$char_gar1_size == "4"] = 2.5
+df$char_gar1_size[df$char_gar1_size == "5"] = 3
+df$char_gar1_size[df$char_gar1_size == "6"] = 3.5
+df$char_gar1_size[df$char_gar1_size == "7"] = 0
+df$char_gar1_size[df$char_gar1_size == "8"] = 4
+df$char_gar1_size = as.numeric(df$char_gar1_size)
+
+
+
+#char_repair_cnd (1 - Above Average, 2 - Average, 3 - Below Average)
+#1 (Above Average should be the highest level)
+df$char_repair_cnd = as.factor(df$char_repair_cnd)
+levels(df$char_repair_cnd) = c("3", "2", "1")
+
+
+#char_type_resd : Residences with 1.5 - 1.9 stories are one story and have partial livable attics and are classified based on the square footage of the attic compared to the first floor of the house(6,7,8,9 -> 5)
+df$char_type_resd = as.numeric(df$char_type_resd)
+df$char_type_resd[df$char_type_resd > 5] = 5
+df$char_type_resd = as.character(df$char_type_resd)
+```
+
+Do the same modifications for the predict_property
+```{r}
+df_pred$meta_class = as.character(df_pred$meta_class)
+df_pred$meta_town_code = as.character(df_pred$meta_town_code)
+df_pred$meta_nbhd = as.character(df_pred$meta_nbhd)
+df_pred$char_ext_wall = as.character(df_pred$char_ext_wall)
+df_pred$char_roof_cnst = as.character(df_pred$char_roof_cnst)
+df_pred$char_bsmt = as.character(df_pred$char_bsmt)
+df_pred$char_bsmt_fin = as.character(df_pred$char_bsmt_fin)
+df_pred$char_heat = as.character(df_pred$char_heat)
+df_pred$char_oheat = as.character(df_pred$char_oheat)
+df_pred$char_air = as.character(df_pred$char_air)
+df_pred$char_attic_type = as.character(df_pred$char_attic_type)
+df_pred$char_cnst_qlty = as.character(df_pred$char_cnst_qlty)
+df_pred$char_site = as.character(df_pred$char_site)
+df_pred$char_gar1_size = as.character(df_pred$char_gar1_size)
+df_pred$char_repair_cnd = as.character(df_pred$char_repair_cnd)
+df_pred$char_use = as.character(df_pred$char_use)
+df_pred$char_type_resd = as.character(df_pred$char_type_resd)
+df_pred$geo_fips = as.character(df_pred$geo_fips)
+df_pred$geo_ohare_noise = as.logical(df_pred$geo_ohare_noise)
+df_pred$geo_floodplain = as.logical(df_pred$geo_floodplain)
+df_pred$geo_withinmr100 = as.logical(df_pred$geo_withinmr100)
+df_pred$geo_withinmr101300 = as.logical(df_pred$geo_withinmr101300)
+
+
+#char_cnst_qlty: 1 - Deluxe, 2 - Average, 3 - poor
+#There is no 3 anyway
+
+#1 (Deluxe) should be higher level
+df_pred$char_cnst_qlty = as.factor(df_pred$char_cnst_qlty)
+levels(df_pred$char_cnst_qlty) = c("2", "1")
+
+
+#char_gar1_size	
+#1 - 1 cars
+#2 - 1.5 cars
+#3 - 2 cars
+#4 - 2.5 cars
+#5 - 3 cars
+#6 - 3.5 cars
+#7 - 0 cars
+#8 - 4 cars
+#Change this into numeric depending on how many cars can fit the garage
+df_pred$char_gar1_size[df_pred$char_gar1_size == "2"] = 1.5
+df_pred$char_gar1_size[df_pred$char_gar1_size == "3"] = 2
+df_pred$char_gar1_size[df_pred$char_gar1_size == "4"] = 2.5
+df_pred$char_gar1_size[df_pred$char_gar1_size == "5"] = 3
+df_pred$char_gar1_size[df_pred$char_gar1_size == "6"] = 3.5
+df_pred$char_gar1_size[df_pred$char_gar1_size == "7"] = 0
+df_pred$char_gar1_size[df_pred$char_gar1_size == "8"] = 4
+df_pred$char_gar1_size = as.numeric(df_pred$char_gar1_size)
+
+
+
+#char_repair_cnd (1 - Above Average, 2 - Average, 3 - Below Average)
+#1 (Above Average should be the highest level)
+df_pred$char_repair_cnd = as.factor(df_pred$char_repair_cnd)
+levels(df_pred$char_repair_cnd) = c("3", "2", "1")
+
+df_pred$char_type_resd = as.numeric(df_pred$char_type_resd)
+df_pred$char_type_resd[df_pred$char_type_resd > 5] = 5
+df_pred$char_type_resd = as.character(df_pred$char_type_resd)
+```
+
+3. Target variable explanatory
+```{r}
+min(df$sale_price)
+max(df$sale_price)
+
+ggplot(data = df, aes(x = sale_price)) +
+  geom_histogram(color = "black", fill = "light green", binwidth = 50000) +
+  xlab("Sale Price") +
+  ylab("Frequency") +
+  ggtitle("Distribution of Sale Price - train set")
+```
+Since the response variable sales price is strongly right skewed, transformation on response variable is considerable (Will be compared after prediction).
+
+```{r}
+par(mfrow = c(2,2))
+qqnorm(df$sale_price)
+qqnorm(sqrt(df$sale_price))
+qqnorm(log(df$sale_price))
+```
+Here, log transformation is considerable.
+
+***Modeling***
+1. Model / Variable Selection
+For following reason, I determined to use multiple linear regression, lasso regression, and ridge regression as a base regression model. Then add randomforest and xgboost.
+- The data has 53 columns that variable selection is required.
+- As there are lots of columns, I should use models that are effective for multicollinearity.
+- KNN regressor does not work effectively for high-dimension data.
+- SVM regressor is not appropriate in this case due to timely manner.
+- PCA is designed for continuous variables.
+
+In addition, as the data contains lots of categorical variables, I decided to drop categorical variables with too many categories. Variables with high number of categories will significantly increase the dimension of data models by creating corresponding number of dummy variables, which will trigger the dimension curse and unnecessarily increase the running time of models. Lastly, if there is a difference between distinct values of categories in train & test sets, it causes inaccurate predictions or errors.
+
+Totally fine since other variables include similar feature.
+ex) town code can somehow explain school districts.
+
+```{r}
+f = formula(sale_price ~ 0+.)
+dim(model.matrix(f, data = df))
+```
+```{r}
+df_cat = df[,sapply(df, is.character) | sapply(df, is.factor)]
+# number of categories by column
+cat_count = function(x){
+  length(unique(x))
+}
+#Drop columns with more than 50 categories
+df = df %>% dplyr::select(!names(sapply(df_cat, cat_count)[sapply(df_cat, cat_count) > 50]))
+df_pred = df_pred %>% dplyr::select(!names(sapply(df_cat, cat_count)[sapply(df_cat, cat_count) > 50]))
+```
+```{r}
+df[,sapply(df, is.character) | sapply(df, is.factor)]
+```
+
+
+2. Train & Test split
+```{r}
+set.seed(677117738)
+train_index = sample(nrow(df), 0.8 * nrow(df), replace = F)
+df_train = df[train_index, ]
+df_test = df[-train_index, ]
+
+
+f = formula(sale_price ~ 0+.)
+train.x = model.matrix(f, data = df_train)
+test.x = model.matrix(f, data = df_test)
+pred.x = model.matrix(pid ~ 0+., data = df_pred)
+train.y = df_train$sale_price
+test.y = df_test$sale_price
+```
+
+```{r}
+setdiff(colnames(train.x), colnames(pred.x))
+setdiff(colnames(test.x), colnames(pred.x))
+setdiff(colnames(pred.x), colnames(train.x))
+```
+
+Now, there is no difference in dummy variables.
+
+```{r}
+#MSE function
+MSE = function(actual, pred){
+  mean((actual - pred)^2)
+}
+```
+
+3. lasso regression
+
+```{r}
+cv_lasso = cv.glmnet(y = train.y, x = train.x, alpha = 1)
+```
+
+```{r}
+summary(cv_lasso)
+```
+
+```{r}
+lasso_pred = predict(cv_lasso, newx = test.x, s = "lambda.min")
+MSE(test.y, lasso_pred)
+```
+- Lasso Regression MSE: 20539953279
+
+
+4. Ridge regression
+```{r}
+cv_ridge = cv.glmnet(y = train.y, x = train.x, alpha = 0)
+```
+```{r}
+ridge_pred = predict(cv_ridge, newx = test.x, s = "lambda.min")
+MSE(test.y, ridge_pred)
+```
+- Ridge Regression MSE: 20878107768
+
+5. Linear regression
+
+```{r}
+#Full model
+mod_full = lm(sale_price ~ . , data = df_train)
+#Stepwise AIC
+#mod_AIC2 = stepAIC(mod_full, direction = "backward",
+#                     trace = FALSE)
+
+#Save formula to save running time
+mod_AIC2 = lm(sale_price ~ meta_class + meta_town_code + meta_certified_est_bldg + 
+    meta_certified_est_land + meta_deed_type + char_hd_sf + char_age + 
+    char_ext_wall + char_roof_cnst + char_beds + char_bsmt + 
+    char_bsmt_fin + char_air + char_frpl + char_attic_type + 
+    char_fbath + char_hbath + char_cnst_qlty + char_site + char_ot_impr + 
+    char_bldg_sf + char_repair_cnd + char_use + char_type_resd + 
+    geo_tract_pop + geo_white_perc + geo_asian_perc + geo_his_perc + 
+    geo_other_perc + geo_ohare_noise + geo_floodplain + geo_fs_flood_factor + 
+    geo_withinmr100 + geo_withinmr101300 + econ_tax_rate + econ_midincome + 
+    ind_arms_length, data = df_train)
+
+MSE(test.y, predict(mod_full, newdata = df_test))
+```
+- Linear Regression MSE: 20494297897
+
+
+6. Random Forest
+```{r}
+#control = trainControl(method="cv", number=5)
+#tunegrid = expand.grid(.mtry=c(sqrt(ncol(df_train)), 10, 15, 20))
+#set.seed(677117738)
+#rf = train(sale_price ~ ., data = df_train, method = "rf", tuneGrid = #tunegrid, trControl = control)
+
+
+
+set.seed(677117738)
+#rf = randomForest(sale_price ~ ., data = df_train, mtry = 10, ntree = 500)
+#rf2 = randomForest(sale_price ~ ., data = df_train, mtry = 15, ntree = 500)
+```
+
+```{r}
+#MSE(test.y, predict(rf2, newdata = df_test))
+```
+
+- Random Forest MSE (mtry = 10, ntree = 500): 17881301719
+
+
+7. xgboost
+```{r, results='hide', warning=F}
+params = list(
+  objective = "reg:squarederror",
+  eval_metric = "rmse",
+  booster = "gbtree",
+  nrounds = 100  
+)
+
+xgb = xgboost(data = train.x, label = train.y, params = params, nrounds = 300)
+```
+
+```{r}
+MSE(test.y, predict(xgb, newdata = test.x))
+```
+- XgBoost MSE (nrounds = 300): 19178502942
+
+
+Overall, RandomForest had the best result. So, I trained and tuned the RF model with 3-fold CV applying the whole data set before making the final predictions.
+
+```{r}
+control = trainControl(method="cv", number = 3)
+#tunegrid = expand.grid(.mtry=c(5, 7, 10))
+#rf_final = train(sale_price ~ ., data = df_train, .mtry =  5, trControl = control, ntree = 100, tuneGrid = tunegrid)
+```
+
+```{r}
+#MSE(test.y, predict(rf_final, newdata = df_test))
+```
+- RF MSE (mtry = 15, ntree = 500): 18277462537
+- RF MSE (mtry = 10, ntree = 100): 18847826593
+
+
+
+***Final Modeling***
+Random forest using mtry = 10, ntree = 500
+```{r}
+#rf_final = randomForest(sale_price ~ ., data = df, mtry = 10, ntree = 500)
+
+#to load model fast due to running time
+rf_final = readRDS("final_model.rds")
+```
+
+```{r}
+varImpPlot(rf_final,
+           cex = 0.6,
+           main = "Variable Importance")
+```
+
+```{r}
+#save model in case
+#saveRDS(rf_final, "final_model.rds")
+```
+
+```{r}
+#fill na in df_pred
+colSums(is.na(df_pred))[colSums(is.na(df_pred)) > 0]
+```
+
+
+```{r}
+#fill na with majority values
+df_pred_final = df_pred %>%
+  dplyr::mutate(char_ext_wall = replace_na(char_ext_wall, "2"),
+                char_roof_cnst = replace_na(char_roof_cnst, "1"),
+                char_bsmt = replace_na(char_bsmt_fin, "3"),
+                char_bsmt_fin = replace_na(char_bsmt_fin, "3"),
+                char_heat = replace_na(char_heat, "1"),
+                char_oheat = replace_na(char_oheat, "5"),
+                char_air = replace_na(char_air, "1"),
+                char_frpl = replace_na(char_frpl, 0),
+                char_attic_type = replace_na(char_attic_type, "3"),
+                char_cnst_qlty = replace_na(char_cnst_qlty, "1"),
+                char_site  = replace_na(char_site, "2"),
+                char_gar1_size = replace_na(char_gar1_size, 2),
+                char_repair_cnd = replace_na(char_repair_cnd, "2"),
+                char_use = replace_na(char_use, "1"),
+                char_type_resd = replace_na(char_type_resd, "2"),
+                ind_garage = replace_na(ind_garage, TRUE))
+```
+
+
+
+
+```{r}
+final_pred = predict(rf_final, df_pred_final)
+```
+
+```{r}
+summary(df$sale_price)
+```
+
+```{r}
+ggplot(data = data.frame(x = final_pred), aes(x)) +
+  geom_histogram(color = "black", fill = "sky blue", binwidth = 30000) +
+  xlab("Sale Price") +
+  ylab("Frequency") +
+  ggtitle("Distribution of the final prediction")
+```
+
+```{r}
+final_df = data.frame(pid = df_pred_final$pid, assessed_value = final_pred)
+#write.csv(final_df, file = "assessed_value.csv", row.names = F)
+```
+
