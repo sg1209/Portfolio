@@ -1,0 +1,2909 @@
+(* Content-type: application/vnd.wolfram.mathematica *)
+
+(*** Wolfram Notebook File ***)
+(* http://www.wolfram.com/nb *)
+
+(* CreatedBy='Mathematica 13.3' *)
+
+(*CacheID: 234*)
+(* Internal cache information:
+NotebookFileLineBreakTest
+NotebookFileLineBreakTest
+NotebookDataPosition[       158,          7]
+NotebookDataLength[    124997,       2901]
+NotebookOptionsPosition[    117562,       2777]
+NotebookOutlinePosition[    117959,       2793]
+CellTagsIndexPosition[    117916,       2790]
+WindowFrame->Normal*)
+
+(* Beginning of Notebook Content *)
+Notebook[{
+
+Cell[CellGroupData[{
+Cell["BDI 513 Final Project", "Title",
+ CellChangeTimes->{{3.9108119393180037`*^9, 3.910811987554247*^9}, {
+  3.910813008519456*^9, 3.910813013147097*^9}, {3.910814368220624*^9, 
+  3.910814370910317*^9}, {3.9109245607054*^9, 
+  3.9109245611620073`*^9}},ExpressionUUID->"cf0658b7-6fdf-4e5c-bd28-\
+621f88828805"],
+
+Cell["Analysis of ESG Efforts in Gies College of Business", "Subtitle",
+ CellChangeTimes->{
+  3.910811993780367*^9},ExpressionUUID->"e389ec83-d388-45b6-87d8-\
+f4dd92171454"],
+
+Cell["\<\
+Group 7: Jay Lee, Johnny Chang, Pi-Te Chen, Seunggyun Shin, Audrey Jung\
+\>", "Subsubsection",
+ CellChangeTimes->{{3.910812012235858*^9, 3.91081202501861*^9}, {
+  3.910812093908777*^9, 
+  3.910812132828936*^9}},ExpressionUUID->"1f5f5a62-7f4b-470c-934a-\
+f2a2d72b0d96"],
+
+Cell[CellGroupData[{
+
+Cell["Question", "Subsection",
+ CellChangeTimes->{{3.910998571717293*^9, 3.910998573376445*^9}, 
+   3.9109986158664007`*^9},ExpressionUUID->"63febecd-a599-4ce8-97db-\
+95fc9205ba1f"],
+
+Cell[TextData[{
+ StyleBox["Project Description:",
+  FontWeight->"Bold"],
+ "\nThe goal of this project will focus on identifying departments that are \
+making contributions to the sustainability goals of the UN. The UN \
+Sustainable Development Goals are 17 goals is a comprehensive list with a \
+focus on developing global partnerships to bring an end to some of the most \
+critical problems such as ending poverty, improving health and education, \
+reducing inequality, encourage economic growth, addressing climate change, \
+and preserving the oceans and forests. \nWe will first conduct research to \
+observe and analyze how faculties in the Gies College of Business have \
+contributed to the development and research of UN sustainability goals. We \
+then will expand the analysis to other departments in the University of \
+Illinois Urbana Champaign using the same process we have done for Gies \
+College to elevate UIUC as a whole. The analysis can further be developed to \
+include business schools at comparable universities to give a more accurate \
+comparison of contribution to the UN sustainability goals.\n",
+ StyleBox["Question:\n",
+  FontWeight->"Bold"],
+ "How are faculty of Gies College of Business contributing to ",
+ "ESG in UIUC as outlined by the UN Sustainability Development Goals?\n",
+ StyleBox["References:\n",
+  FontWeight->"Bold"],
+ "UN Sustainable Development Goals Website\nGies College of Business Faculty \
+Profile Website"
+}], "Text",
+ CellChangeTimes->{
+  3.910806580465454*^9, {3.91080661510612*^9, 3.910806616462965*^9}, {
+   3.910806739035993*^9, 3.91080683589736*^9}, {3.910808746016857*^9, 
+   3.910808752651729*^9}, {3.910808814712242*^9, 3.910808815497435*^9}, {
+   3.910809072771778*^9, 3.9108090876584387`*^9}, {3.9108127375353203`*^9, 
+   3.910812888243541*^9}, {3.9108129225764437`*^9, 3.910812974266809*^9}, {
+   3.910813035995851*^9, 3.910813052948099*^9}, {3.91092179376554*^9, 
+   3.9109218069706573`*^9}, {3.9109218499737043`*^9, 3.91092188407971*^9}, {
+   3.910921925174795*^9, 3.910921931531102*^9}, {3.9109219636104307`*^9, 
+   3.910922121731483*^9}, {3.910922236077478*^9, 
+   3.9109222928773746`*^9}},ExpressionUUID->"8c1b86ce-cbde-4b6f-8ef7-\
+84e428f0ac34"],
+
+Cell[BoxData[{
+ RowBox[{"SystemOpen", "[", "\"\<https://sdgs.un.org/goals\>\"", 
+  "]"}], "\[IndentingNewLine]", 
+ RowBox[{"SystemOpen", "[", 
+  "\"\<https://giesbusiness.illinois.edu/faculty-research/faculty-profiles\>\"\
+", "]"}]}], "Input",
+ CellChangeTimes->{{3.910808819590022*^9, 3.9108088284107027`*^9}, {
+  3.91080886837497*^9, 3.910808913626668*^9}, {3.910809066527855*^9, 
+  3.910809068163619*^9}, {3.9110018370926037`*^9, 
+  3.911001837530109*^9}},ExpressionUUID->"57cd60bf-1d10-44d9-bd3b-\
+d06e0b0ec704"]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["Data Wrangle", "Subsection",
+ CellChangeTimes->{{3.910811882856411*^9, 
+  3.910811885154257*^9}},ExpressionUUID->"0997b2df-30cb-46e5-9d59-\
+b15b100a6016"],
+
+Cell[TextData[{
+ "In this research project, detailed data from the Gies College of Business \
+Faculty Profile website at the University of Illinois Urbana-Champaign has \
+been methodically scraped using Python, coupled with BeautifulSoup and \
+Selenium libraries. This process enables a comprehensive collection of \
+information regarding faculty research interests, publications, and projects, \
+crucial for evaluating their contributions to the Environmental, Social, and \
+Governance (ESG) aspects of the UN Sustainable Development Goals. This data \
+forms the foundation for a thorough analysis of the Gies College\
+\[CloseCurlyQuote]s role in advancing these global sustainability objectives.\
+\n\nThe python code is given Below. The code is fully reproducible by running \
+in google ",
+ StyleBox["colab",
+  IgnoreSpellCheck->True],
+ "."
+}], "Text",
+ CellChangeTimes->{{3.911000232470875*^9, 3.911000232855959*^9}, {
+  3.911000297064612*^9, 3.911000312622499*^9}, {3.911001597461804*^9, 
+  3.911001615091814*^9}, {3.911001661396698*^9, 3.911001684112452*^9}, {
+  3.911001831751026*^9, 3.9110018334746227`*^9}, {3.911001886719185*^9, 
+  3.911001890648507*^9}, {3.9110024099536743`*^9, 3.9110024146830807`*^9}, {
+  3.911002654707191*^9, 3.9110026825400248`*^9}, {3.911002713434795*^9, 
+  3.9110027622654667`*^9}, {3.911003192607667*^9, 
+  3.91100319868539*^9}},ExpressionUUID->"cd0ca0b5-990b-4948-bb85-\
+b15bcbf15103"],
+
+Cell[BoxData[
+ RowBox[{"SystemOpen", "[", 
+  "\"\<https://drive.google.com/file/d/1-7BWpGfhe2TTFtx5moyA-8dn15SO8Rrz/view?\
+usp=sharing\>\"", "]"}]], "Input",
+ CellChangeTimes->{{3.911002689055255*^9, 
+  3.911002694987442*^9}},ExpressionUUID->"c2952218-2bce-4c63-b54f-\
+71f59d4b6fa0"]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["Data Exploration", "Subsection",
+ CellChangeTimes->{{3.910812194887968*^9, 3.910812196622156*^9}, {
+  3.9108130940411873`*^9, 
+  3.910813094700448*^9}},ExpressionUUID->"d5b3a8c8-a6bb-4e27-8005-\
+b4adaa919557"],
+
+Cell["\<\
+To ascertain the alignment of the research articles with ESG criteria, a word \
+matching approach is utilized. This involves the creation of a comprehensive \
+dictionary of ESG-related terms. The code searches through the text of \
+faculty publications, looking for occurrences of these terms. By counting and \
+analyzing the frequency and context of these ESG-related words, the algorithm \
+can effectively identify articles that significantly contribute to ESG \
+topics. This method not only aids in quantifying the contributions but also \
+in understanding the specific areas within the ESG spectrum where the Gies \
+College of Business is most active. This technique will be instrumental in \
+mapping the college\[CloseCurlyQuote]s research efforts against the broader \
+framework of the UN Sustainable Development Goals. The ESG dictionary was \
+manually written according to the UN 17 goals website.\
+\>", "Text",
+ CellChangeTimes->{
+  3.911003167467456*^9, {3.911003200619203*^9, 
+   3.911003219510749*^9}},ExpressionUUID->"8028f83d-315b-41df-9593-\
+d91ab2875a83"],
+
+Cell[CellGroupData[{
+
+Cell[TextData[StyleBox["Importing and understanding data scrape",
+ FontWeight->"Bold"]], "Text",
+ CellGroupingRules->{"GroupTogetherGrouping", 10000.},
+ CellChangeTimes->{{3.911002959702813*^9, 3.911002964786913*^9}, 
+   3.911002999552335*^9},ExpressionUUID->"75a69ca2-b1e8-4c3c-a29b-\
+addce64df80d"],
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{"data", "=", 
+   RowBox[{
+   "Import", "[", "\"\</directory/Gies_article_final.csv\>\"", "]"}]}], 
+  ";"}], "\n", 
+ RowBox[{
+  RowBox[{"dictionary", "=", 
+   RowBox[{"Import", "[", "\"\</directory/Dictionary.csv\>\"", "]"}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{
+   RowBox[{"dictList", "=", 
+    RowBox[{"Flatten", "[", 
+     RowBox[{"dictionary", "[", 
+      RowBox[{"[", 
+       RowBox[{
+        RowBox[{"2", ";;", "All"}], ",", "1"}], "]"}], "]"}], "]"}]}], ";"}], 
+  "\n"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"headers", "=", 
+   RowBox[{"First", "[", "data", "]"}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"articles", "=", 
+   RowBox[{"data", "[", 
+    RowBox[{"[", 
+     RowBox[{
+      RowBox[{"2", ";;", "All"}], ",", "1"}], "]"}], "]"}]}], ";"}], "\n", 
+ RowBox[{
+  RowBox[{
+   RowBox[{"years", "=", 
+    RowBox[{"data", "[", 
+     RowBox[{"[", 
+      RowBox[{
+       RowBox[{"2", ";;", "All"}], ",", "2"}], "]"}], "]"}]}], ";"}], 
+  " "}], "\n", 
+ RowBox[{
+  RowBox[{
+   RowBox[{"names", "=", 
+    RowBox[{"data", "[", 
+     RowBox[{"[", 
+      RowBox[{
+       RowBox[{"2", ";;", "All"}], ",", "3"}], "]"}], "]"}]}], ";"}], 
+  " "}], "\n", 
+ RowBox[{
+  RowBox[{
+   RowBox[{"departments", "=", 
+    RowBox[{"data", "[", 
+     RowBox[{"[", 
+      RowBox[{
+       RowBox[{"2", ";;", "All"}], ",", "4"}], "]"}], "]"}]}], ";"}], 
+  "\[IndentingNewLine]"}], "\n", 
+ RowBox[{
+  RowBox[{
+   RowBox[{"containsDictWordQ", "[", "article_", "]"}], ":=", 
+   RowBox[{"AnyTrue", "[", 
+    RowBox[{"dictList", ",", 
+     RowBox[{
+      RowBox[{"StringContainsQ", "[", 
+       RowBox[{"article", ",", "#", ",", 
+        RowBox[{"IgnoreCase", "->", "True"}]}], "]"}], "&"}]}], "]"}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"groupedCounts", "=", 
+   RowBox[{"GroupBy", "[", 
+    RowBox[{
+     RowBox[{"Transpose", "[", 
+      RowBox[{"{", 
+       RowBox[{"names", ",", "departments", ",", "articles"}], "}"}], "]"}], 
+     ",", 
+     RowBox[{"Most", "->", "Last"}], ",", 
+     RowBox[{
+      RowBox[{"Total", "[", 
+       RowBox[{"Boole", "[", 
+        RowBox[{"Map", "[", 
+         RowBox[{"containsDictWordQ", ",", "#"}], "]"}], "]"}], "]"}], 
+      "&"}]}], "]"}]}], ";"}], "\n", 
+ RowBox[{
+  RowBox[{"departmentList", "=", 
+   RowBox[{
+    RowBox[{"Keys", "[", "groupedCounts", "]"}], "/.", " ", 
+    RowBox[{
+     RowBox[{"{", 
+      RowBox[{"_", ",", "department_"}], "}"}], "->", "department"}]}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"departmentSums", "=", 
+   RowBox[{"Total", "/@", 
+    RowBox[{"(", 
+     RowBox[{"groupedCounts", "/.", " ", 
+      RowBox[{
+       RowBox[{"{", 
+        RowBox[{"_", ",", "department_"}], "}"}], "->", "department"}]}], 
+     ")"}]}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"departmentCounts", "=", 
+   RowBox[{"AssociationThread", "[", 
+    RowBox[{"departmentList", "->", "departmentSums"}], "]"}]}], 
+  ";"}], "\n", 
+ RowBox[{
+  RowBox[{"departmentCountsList", "=", 
+   RowBox[{"KeyValueMap", "[", 
+    RowBox[{
+     RowBox[{
+      RowBox[{"{", 
+       RowBox[{
+        RowBox[{"#1", "[", 
+         RowBox[{"[", "2", "]"}], "]"}], ",", "#2"}], "}"}], "&"}], ",", 
+     "groupedCounts"}], "]"}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"departmentCounts", "=", 
+   RowBox[{"Association", "[", "]"}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"Do", "[", 
+   RowBox[{
+    RowBox[{"With", "[", 
+     RowBox[{
+      RowBox[{"{", 
+       RowBox[{
+        RowBox[{"dept", "=", 
+         RowBox[{"pair", "[", 
+          RowBox[{"[", "1", "]"}], "]"}]}], ",", 
+        RowBox[{"count", "=", 
+         RowBox[{"pair", "[", 
+          RowBox[{"[", "2", "]"}], "]"}]}]}], "}"}], ",", 
+      RowBox[{
+       RowBox[{"departmentCounts", "[", "dept", "]"}], "=", 
+       RowBox[{
+        RowBox[{"Lookup", "[", 
+         RowBox[{"departmentCounts", ",", "dept", ",", "0"}], "]"}], "+", 
+        "count"}]}]}], "]"}], ",", 
+    RowBox[{"{", 
+     RowBox[{"pair", ",", "departmentCountsList"}], "}"}]}], "]"}], 
+  ";"}]}], "Input",
+ CellGroupingRules->{"GroupTogetherGrouping", 10000.},
+ CellChangeTimes->{
+  3.911002790815637*^9, {3.911002820878859*^9, 3.911002828598115*^9}, {
+   3.9110028798286753`*^9, 3.9110029224992723`*^9}, {3.9110029698226624`*^9, 
+   3.911002995935441*^9}},ExpressionUUID->"66ed45dc-153f-4881-b714-\
+c6e1b6ecd70c"],
+
+Cell[BoxData["departmentCounts"], "Input",
+ CellGroupingRules->{"GroupTogetherGrouping", 10000.},
+ CellChangeTimes->{{3.9102785299697104`*^9, 3.910278530854898*^9}, 
+   3.911002995935481*^9},
+ CellLabel->"In[38]:=",ExpressionUUID->"c04846b0-1754-43c3-bedd-e796c0fdba0b"],
+
+Cell[BoxData[
+ RowBox[{"\[LeftAssociation]", 
+  RowBox[{
+   RowBox[{"\<\"Accountancy\"\>", "\[Rule]", "102"}], ",", 
+   RowBox[{"\<\"Business Administration\"\>", "\[Rule]", "429"}], ",", 
+   RowBox[{"\<\"Finance\"\>", "\[Rule]", "135"}], ",", 
+   RowBox[{"\<\"Office of the Dean\"\>", "\[Rule]", "30"}], ",", 
+   RowBox[{"\<\"Gies Business\"\>", "\[Rule]", "0"}]}], 
+  "\[RightAssociation]"}]], "Output",
+ CellGroupingRules->{"GroupTogetherGrouping", 10000.},
+ CellChangeTimes->{
+  3.91027853210949*^9, {3.910807474118875*^9, 3.910807497268055*^9}, 
+   3.911002995935533*^9},
+ CellLabel->"Out[38]=",ExpressionUUID->"cdd57e37-ca53-4f16-a1f5-c0fac0b90949"],
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{
+   RowBox[{"containsECGWordQ", "[", "article_", "]"}], ":=", 
+   RowBox[{"AnyTrue", "[", 
+    RowBox[{"dictList", ",", 
+     RowBox[{
+      RowBox[{"StringContainsQ", "[", 
+       RowBox[{"article", ",", "#", ",", 
+        RowBox[{"IgnoreCase", "->", "True"}]}], "]"}], "&"}]}], "]"}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{
+   RowBox[{"countECGWords", "[", "article_", "]"}], ":=", 
+   RowBox[{"Total", "[", 
+    RowBox[{
+     RowBox[{
+      RowBox[{"Boole", "[", 
+       RowBox[{"StringContainsQ", "[", 
+        RowBox[{"article", ",", "#", ",", 
+         RowBox[{"IgnoreCase", "->", "True"}]}], "]"}], "]"}], "&"}], "/@", 
+     "dictList"}], "]"}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"ecgColumn", "=", 
+   RowBox[{"containsECGWordQ", "/@", "articles"}]}], ";"}], "\n", 
+ RowBox[{
+  RowBox[{"wordCountColumn", "=", 
+   RowBox[{"countECGWords", "/@", "articles"}]}], ";"}]}], "Input",
+ CellGroupingRules->{"GroupTogetherGrouping", 10000.},
+ CellChangeTimes->{{3.9102793690643387`*^9, 3.910279401197997*^9}, 
+   3.910280130290743*^9, 3.910807818950879*^9, 
+   3.911002995935563*^9},ExpressionUUID->"17eade60-658c-46af-ba56-\
+715f2a41ecc5"],
+
+Cell[BoxData[{
+ RowBox[{"articlesLength", "=", 
+  RowBox[{"Length", "[", "articles", "]"}]}], "\n", 
+ RowBox[{"ecgColumnLength", "=", 
+  RowBox[{"Length", "[", "ecgColumn", "]"}]}], "\n", 
+ RowBox[{"wordCountColumnLength", "=", 
+  RowBox[{"Length", "[", "wordCountColumn", "]"}]}]}], "Input",
+ CellGroupingRules->{"GroupTogetherGrouping", 10000.},
+ CellChangeTimes->{{3.910280136425436*^9, 3.9102801364367*^9}, {
+   3.910280206194015*^9, 3.910280207495142*^9}, {3.9108078307262373`*^9, 
+   3.91080784008838*^9}, {3.9109183874956207`*^9, 3.91091838882517*^9}, {
+   3.910997398605363*^9, 3.910997401398012*^9}, 
+   3.91100299593559*^9},ExpressionUUID->"18d0bc02-fb49-497c-8a0b-\
+d22e19146036"],
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{
+   RowBox[{"dataWithoutHeaders", "=", 
+    RowBox[{"Rest", "[", "data", "]"}]}], ";"}], " "}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"augmentedData", "=", 
+   RowBox[{"MapThread", "[", 
+    RowBox[{"Append", ",", 
+     RowBox[{"{", 
+      RowBox[{"dataWithoutHeaders", ",", 
+       RowBox[{"Transpose", "[", 
+        RowBox[{"{", 
+         RowBox[{"ecgColumn", ",", "wordCountColumn"}], "}"}], "]"}]}], 
+      "}"}]}], "]"}]}], ";"}], "\n", 
+ RowBox[{
+  RowBox[{"augmentedDataWithHeaders", "=", 
+   RowBox[{"Prepend", "[", 
+    RowBox[{"augmentedData", ",", "headers"}], "]"}]}], ";"}]}], "Input",
+ CellGroupingRules->{"GroupTogetherGrouping", 10000.},
+ CellChangeTimes->{{3.910280334011087*^9, 3.910280344709375*^9}, 
+   3.9110029959356194`*^9},ExpressionUUID->"e3abdb29-030d-438a-a918-\
+141999bac5f9"],
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{"originalHeaders", "=", 
+   RowBox[{"First", "[", "data", "]"}]}], ";"}], "\n", 
+ RowBox[{
+  RowBox[{"dataRows", "=", 
+   RowBox[{"Rest", "[", "data", "]"}]}], ";"}], "\n", 
+ RowBox[{
+  RowBox[{"ecgFormatted", "=", 
+   RowBox[{"Boole", "[", "ecgColumn", "]"}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"wordCountFormatted", "=", "wordCountColumn"}], ";"}], "\n", 
+ RowBox[{
+  RowBox[{"augmentedDataRows", "=", 
+   RowBox[{"MapThread", "[", 
+    RowBox[{"Join", ",", 
+     RowBox[{"{", 
+      RowBox[{"dataRows", ",", 
+       RowBox[{"Transpose", "[", 
+        RowBox[{"{", 
+         RowBox[{"ecgFormatted", ",", "wordCountFormatted"}], "}"}], "]"}]}], 
+      "}"}]}], "]"}]}], ";"}], "\n", 
+ RowBox[{
+  RowBox[{"newHeaders", "=", 
+   RowBox[{"Join", "[", 
+    RowBox[{"originalHeaders", ",", 
+     RowBox[{"{", 
+      RowBox[{"\"\<ecg\>\"", ",", "\"\<word\>\""}], "}"}]}], "]"}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"augmentedDataWithHeaders", "=", 
+   RowBox[{"Prepend", "[", 
+    RowBox[{"augmentedDataRows", ",", "newHeaders"}], "]"}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"Export", "[", 
+   RowBox[{
+   "\"\</directory/data_with_headers.csv\>\"", ",", 
+    "augmentedDataWithHeaders"}], "]"}], ";"}]}], "Input",
+ CellGroupingRules->{"GroupTogetherGrouping", 10000.},
+ CellChangeTimes->{{3.910281026312489*^9, 3.910281026315342*^9}, {
+   3.910281189987177*^9, 3.910281196125189*^9}, {3.910282352951107*^9, 
+   3.9102823991415577`*^9}, {3.910282535158628*^9, 3.91028253570394*^9}, {
+   3.9108079217212553`*^9, 3.910807936253286*^9}, {3.910918409399225*^9, 
+   3.91091841626132*^9}, {3.9109273632402163`*^9, 3.910927366484811*^9}, 
+   3.911002995935645*^9},ExpressionUUID->"32a3b46f-b9b7-43d9-839d-\
+fca4a2ebff8a"]
+}, Closed]]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["Data Analysis", "Subsection",
+ CellChangeTimes->{{3.9108123710693197`*^9, 
+  3.910812373181225*^9}},ExpressionUUID->"70ae719c-dc22-4e1a-b4f9-\
+26677f9f8805"],
+
+Cell[CellGroupData[{
+
+Cell[TextData[StyleBox["Import data",
+ FontWeight->"Bold"]], "Text",
+ CellGroupingRules->{"GroupTogetherGrouping", 10000.},
+ CellChangeTimes->{{3.9110033422748957`*^9, 3.911003342907259*^9}, {
+  3.9110033796354303`*^9, 
+  3.911003388883788*^9}},ExpressionUUID->"21ea3d05-289d-4686-9eec-\
+f564a73086f0"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"final", "=", 
+   RowBox[{
+   "Import", "[", 
+    "\"\</Users/jaylee/Documents/UIUC/UIUC Fall 2023/BDI \
+513/final_article.csv\>\"", "]"}]}], ";"}]], "Input",
+ CellGroupingRules->{"GroupTogetherGrouping", 10000.},
+ CellChangeTimes->{{3.910896205663328*^9, 3.910896217354129*^9}, {
+   3.9110028466732483`*^9, 3.911002853700129*^9}, 
+   3.9110033888838654`*^9},ExpressionUUID->"7e63d014-3cb9-4c20-b449-\
+aa52260716e3"],
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{
+   RowBox[{"articles", "=", 
+    RowBox[{"final", "[", 
+     RowBox[{"[", 
+      RowBox[{
+       RowBox[{"2", ";;"}], ",", "1"}], "]"}], "]"}]}], ";"}], "  "}], "\n", 
+ RowBox[{
+  RowBox[{
+   RowBox[{"ecg", "=", 
+    RowBox[{"final", "[", 
+     RowBox[{"[", 
+      RowBox[{
+       RowBox[{"2", ";;"}], ",", 
+       RowBox[{"-", "2"}]}], "]"}], "]"}]}], ";"}], "   "}], "\n", 
+ RowBox[{
+  RowBox[{
+   RowBox[{"names", "=", 
+    RowBox[{"final", "[", 
+     RowBox[{"[", 
+      RowBox[{
+       RowBox[{"2", ";;"}], ",", "3"}], "]"}], "]"}]}], ";"}], " "}], "\n", 
+ RowBox[{
+  RowBox[{
+   RowBox[{"departments", "=", 
+    RowBox[{"final", "[", 
+     RowBox[{"[", 
+      RowBox[{
+       RowBox[{"2", ";;"}], ",", "4"}], "]"}], "]"}]}], ";"}], " "}], "\n", 
+ RowBox[{
+  RowBox[{"years", "=", 
+   RowBox[{"final", "[", 
+    RowBox[{"[", 
+     RowBox[{
+      RowBox[{"2", ";;"}], ",", "2"}], "]"}], "]"}]}], ";"}]}], "Input",
+ CellGroupingRules->{"GroupTogetherGrouping", 10000.},
+ CellChangeTimes->{3.911002861668983*^9, 
+  3.911003388883894*^9},ExpressionUUID->"b8a36898-a24b-41dd-839b-\
+64b00641cc34"]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell[TextData[StyleBox["Most ESG related articles by professors",
+ FontWeight->"Bold"]], "Text",
+ CellGroupingRules->{"GroupTogetherGrouping", 10001.},
+ CellChangeTimes->{{3.911003376164528*^9, 
+  3.911003405935783*^9}},ExpressionUUID->"3248c16d-971e-478c-bf36-\
+05a4ffed77e4"],
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{"groupedCountsByProf", "=", 
+   RowBox[{"Total", "/@", 
+    RowBox[{"GroupBy", "[", 
+     RowBox[{
+      RowBox[{"Transpose", "[", 
+       RowBox[{"{", 
+        RowBox[{"names", ",", "ecg"}], "}"}], "]"}], ",", 
+      RowBox[{"First", "->", "Last"}], ",", "Total"}], "]"}]}]}], ";"}], "\n", 
+ RowBox[{
+  RowBox[{"topProfessors", "=", 
+   RowBox[{"TakeLargestBy", "[", 
+    RowBox[{
+     RowBox[{"Normal", "[", "groupedCountsByProf", "]"}], ",", "Last", ",", 
+     "10"}], "]"}]}], ";"}]}], "Input",
+ CellGroupingRules->{"GroupTogetherGrouping", 10001.},
+ CellChangeTimes->{3.911002866713436*^9, 
+  3.911003405935857*^9},ExpressionUUID->"3e740dc9-08ba-482e-a0bc-\
+66dda0f622a7"],
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{"groupedCountsByDept", "=", 
+   RowBox[{"Total", "/@", 
+    RowBox[{"GroupBy", "[", 
+     RowBox[{
+      RowBox[{"Transpose", "[", 
+       RowBox[{"{", 
+        RowBox[{"departments", ",", "ecg"}], "}"}], "]"}], ",", 
+      RowBox[{"First", "->", "Last"}]}], "]"}]}]}], 
+  ";"}], "\n", "groupedCountsByDept"}], "Input",
+ CellGroupingRules->{"GroupTogetherGrouping", 10001.},
+ CellChangeTimes->{{3.910283471198181*^9, 3.910283473048441*^9}, {
+   3.910918570102957*^9, 3.910918573084578*^9}, 3.911003405935905*^9},
+ CellLabel->"In[13]:=",ExpressionUUID->"3e826232-63cf-4a2d-b473-cbd05bc9ec0a"],
+
+Cell[BoxData[
+ RowBox[{"\[LeftAssociation]", 
+  RowBox[{
+   RowBox[{"\<\"Accountancy\"\>", "\[Rule]", "102"}], ",", 
+   RowBox[{"\<\"Business Administration\"\>", "\[Rule]", "429"}], ",", 
+   RowBox[{"\<\"Finance\"\>", "\[Rule]", "135"}], ",", 
+   RowBox[{"\<\"Office of the Dean\"\>", "\[Rule]", "30"}], ",", 
+   RowBox[{"\<\"Gies Business\"\>", "\[Rule]", "0"}]}], 
+  "\[RightAssociation]"}]], "Output",
+ CellGroupingRules->{"GroupTogetherGrouping", 10001.},
+ CellChangeTimes->{
+  3.910283473621455*^9, 3.9108085471511507`*^9, 3.910897789207303*^9, {
+   3.910918570593115*^9, 3.910918573661215*^9}, 3.910997495220941*^9, 
+   3.9110034059360447`*^9},
+ CellLabel->"Out[14]=",ExpressionUUID->"374729d5-7761-40fa-a367-e54757c6d8c3"],
+
+Cell[BoxData[
+ RowBox[{"BarChart", "[", 
+  RowBox[{
+   RowBox[{"Values", "[", "topProfessors", "]"}], ",", 
+   RowBox[{"BarOrigin", "->", "Left"}], ",", 
+   RowBox[{"ChartLabels", "->", 
+    RowBox[{"Placed", "[", 
+     RowBox[{
+      RowBox[{"Keys", "[", "topProfessors", "]"}], ",", "Before"}], "]"}]}], 
+   ",", "\[IndentingNewLine]", 
+   RowBox[{"LabelingFunction", "->", 
+    RowBox[{"(", 
+     RowBox[{
+      RowBox[{"Placed", "[", 
+       RowBox[{"#", ",", "After"}], "]"}], "&"}], ")"}]}], ",", 
+   RowBox[{"ChartStyle", "->", "\"\<Pastel\>\""}], ",", 
+   RowBox[{"AxesLabel", "->", 
+    RowBox[{"{", 
+     RowBox[{"\"\<Professor\>\"", ",", "\"\<Count\>\""}], "}"}]}], ",", 
+   "\[IndentingNewLine]", 
+   RowBox[{"ImageSize", "->", "800"}], ",", " ", 
+   RowBox[{"PlotLabel", "->", "\"\<Top # of Articles by Professor\>\""}]}], 
+  "]"}]], "Input",
+ CellGroupingRules->{"GroupTogetherGrouping", 10001.},
+ CellChangeTimes->{{3.910283559900538*^9, 3.910283572617052*^9}, {
+   3.9102836027958813`*^9, 3.9102836074090147`*^9}, {3.9102838893490868`*^9, 
+   3.910283895223609*^9}, {3.910283928679431*^9, 3.910283931781561*^9}, {
+   3.910814606688734*^9, 3.9108146107272463`*^9}, {3.910915703167865*^9, 
+   3.910915703546599*^9}, {3.910918718810012*^9, 3.9109187352084703`*^9}, 
+   3.911003324416052*^9, 
+   3.9110034059361134`*^9},ExpressionUUID->"8ba135ec-8140-4761-881a-\
+a91b15df86ec"]
+}, Closed]],
+
+Cell[BoxData[
+ GraphicsBox[{
+   {Opacity[0], 
+    PointBox[{{0., 0.3507501820830299}, {0., 10.451201747997086`}}]}, {{}, 
+    {RGBColor[0.982864, 0.7431472, 0.3262672], EdgeForm[{Opacity[0.63], 
+     Thickness[Small]}], 
+     {RGBColor[0.761959, 0.470832, 0.940597], EdgeForm[{Opacity[0.63], 
+      Thickness[Small]}], 
+      RectangleBox[{0., 0.5487982520029133}, {64., 1.4512017479970867},
+       RoundingRadius->0]}, 
+     {RGBColor[0.8223214444444444, 0.5994048888888889, 0.9129414444444445], 
+      EdgeForm[{Opacity[0.63], Thickness[Small]}], 
+      RectangleBox[{0., 1.5487982520029133}, {39., 2.4512017479970867},
+       RoundingRadius->0]}, 
+     {RGBColor[0.8855842222222222, 0.6706474444444445, 0.7165372222222222], 
+      EdgeForm[{Opacity[0.63], Thickness[Small]}], 
+      RectangleBox[{0., 2.5487982520029133}, {33., 3.4512017479970867},
+       RoundingRadius->0]}, 
+     {RGBColor[0.927848, 0.742785, 0.6151383333333333], EdgeForm[{Opacity[
+      0.63], Thickness[Small]}], 
+      RectangleBox[{0., 3.5487982520029133}, {30., 4.451201747997087},
+       RoundingRadius->0]}, 
+     {RGBColor[0.9526992222222223, 0.8336042222222222, 0.5885163333333333], 
+      EdgeForm[{Opacity[0.63], Thickness[Small]}], 
+      RectangleBox[{0., 4.548798252002913}, {21., 5.451201747997087},
+       RoundingRadius->0]}, 
+     {RGBColor[0.9606394444444444, 0.9179434444444444, 0.5985582222222222], 
+      EdgeForm[{Opacity[0.63], Thickness[Small]}], 
+      RectangleBox[{0., 5.548798252002913}, {13., 6.451201747997087},
+       RoundingRadius->0]}, 
+     {RGBColor[0.929162, 0.95034, 0.6648153333333333], EdgeForm[{Opacity[
+      0.63], Thickness[Small]}], 
+      RectangleBox[{0., 6.548798252002913}, {12., 7.451201747997087},
+       RoundingRadius->0]}, 
+     {RGBColor[0.8245341111111112, 0.9127775555555555, 0.7984788888888888], 
+      EdgeForm[{Opacity[0.63], Thickness[Small]}], 
+      RectangleBox[{0., 7.548798252002913}, {12., 8.451201747997086},
+       RoundingRadius->0]}, 
+     {RGBColor[0.6337922222222223, 0.8205023333333333, 0.9334427777777777], 
+      EdgeForm[{Opacity[0.63], Thickness[Small]}], 
+      RectangleBox[{0., 8.548798252002912}, {12., 9.451201747997086},
+       RoundingRadius->0]}, 
+     {RGBColor[0.431296, 0.709773, 0.927077], EdgeForm[{Opacity[0.63], 
+      Thickness[Small]}], 
+      RectangleBox[{0., 9.548798252002912}, {12., 10.451201747997086},
+       RoundingRadius->0]}}, {}, {}}, {}, {
+    InsetBox["\<\"Kindt, John\"\>", Offset[{-6, 0}, {0., 1.}], 
+     ImageScaled[{1, 0.5}]], 
+    InsetBox["64", Offset[{6, 0}, {64., 1.}], ImageScaled[{0, 0.5}]], 
+    InsetBox["\<\"Fullerton, Don\"\>", Offset[{-6, 0}, {0., 2.}], 
+     ImageScaled[{1, 0.5}]], 
+    InsetBox["39", Offset[{6, 0}, {39., 2.}], ImageScaled[{0, 0.5}]], 
+    InsetBox["\<\"Shaw, Michael J.\"\>", Offset[{-6, 0}, {0., 3.}], 
+     ImageScaled[{1, 0.5}]], 
+    InsetBox["33", Offset[{6, 0}, {33., 3.}], ImageScaled[{0, 0.5}]], 
+    InsetBox["\<\"Brown, Jeffrey\"\>", Offset[{-6, 0}, {0., 4.}], 
+     ImageScaled[{1, 0.5}]], 
+    InsetBox["30", Offset[{6, 0}, {30., 4.}], ImageScaled[{0, 0.5}]], 
+    InsetBox["\<\"Deryugina, Tatyana\"\>", Offset[{-6, 0}, {0., 5.}], 
+     ImageScaled[{1, 0.5}]], 
+    InsetBox["21", Offset[{6, 0}, {21., 5.}], ImageScaled[{0, 0.5}]], 
+    InsetBox["\<\"Kraatz, Matthew\"\>", Offset[{-6, 0}, {0., 6.}], 
+     ImageScaled[{1, 0.5}]], 
+    InsetBox["13", Offset[{6, 0}, {13., 6.}], ImageScaled[{0, 0.5}]], 
+    InsetBox["\<\"Shah, Sonali\"\>", Offset[{-6, 0}, {0., 7.}], 
+     ImageScaled[{1, 0.5}]], 
+    InsetBox["12", Offset[{6, 0}, {12., 7.}], ImageScaled[{0, 0.5}]], 
+    InsetBox["\<\"Lough, Benjamin\"\>", Offset[{-6, 0}, {0., 8.}], 
+     ImageScaled[{1, 0.5}]], 
+    InsetBox["12", Offset[{6, 0}, {12., 8.}], ImageScaled[{0, 0.5}]], 
+    InsetBox["\<\"Northcraft, Gregory\"\>", Offset[{-6, 0}, {0., 9.}], 
+     ImageScaled[{1, 0.5}]], 
+    InsetBox["12", Offset[{6, 0}, {12., 9.}], ImageScaled[{0, 0.5}]], 
+    InsetBox["\<\"Subramanyam, Ramanath\"\>", Offset[{-6, 0}, {0., 10.}], 
+     ImageScaled[{1, 0.5}]], 
+    InsetBox["12", Offset[{6, 0}, {12., 10.}], 
+     ImageScaled[{0, 0.5}]]}, {}, {}, 
+   StyleBox[
+    StyleBox[{
+      {Thickness[Tiny], 
+       LineBox[{{0., 0.3507501820830299}, {0., 10.653210779315367`}}], 
+       StyleBox[
+        {Thickness[Tiny], InsetBox[
+          TagBox["\<\"Professor\"\>",
+           HoldForm], Offset[{0., 10.}, {0., 10.451201747997086}], NCache[
+          ImageScaled[{Rational[1, 2], 0}], ImageScaled[{0.5, 0}]], 
+          Automatic, {1, 0}]}, "GraphicsLabel",
+        StripOnInput->False]}, 
+      StyleBox[{
+        {Thickness[Tiny], 
+         LineBox[{{0., 0.5487982520029133}, 
+           Offset[{-6., 0.}, {0., 0.5487982520029133}]}], 
+         LineBox[{{0., 10.451201747997086`}, 
+           Offset[{-6., 0.}, {0., 
+            10.451201747997086`}]}], {{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}}}, 
+        StyleBox[{}, "GraphicsLabel",
+         StripOnInput->False]}, "GraphicsTicks",
+       StripOnInput->False]},
+     Antialiasing->False], "GraphicsAxes",
+    StripOnInput->False]},
+  AspectRatio->NCache[GoldenRatio^(-1), 0.6180339887498948],
+  Axes->{True, False},
+  AxesLabel->{
+    FormBox[
+     TagBox["\"Count\"", HoldForm], TraditionalForm], 
+    FormBox[
+     TagBox["\"Professor\"", HoldForm], TraditionalForm]},
+  AxesOrigin->{0., 0.3507501820830299},
+  CoordinatesToolOptions:>{"DisplayFunction" -> ({
+      Identity[
+       Part[#, 1]], 
+      Identity[
+       Part[#, 2]]}& ), "CopiedValueFunction" -> ({
+      Identity[
+       Part[#, 1]], 
+      Identity[
+       Part[#, 2]]}& )},
+  DisplayFunction->Identity,
+  FrameLabel->{{None, None}, {None, None}},
+  FrameTicks->{{Automatic, Automatic}, {Automatic, Automatic}},
+  GridLines->{None, None},
+  GridLinesStyle->Directive[
+    GrayLevel[0.5, 0.4]],
+  ImageSize->800,
+  PlotLabel->FormBox["\"Top # of Articles by Professor\"", TraditionalForm],
+  PlotRange->{{All, All}, {All, All}},
+  PlotRangePadding->{{
+     Scaled[0.02], 
+     Scaled[0.02]}, {
+     Scaled[0.02], 
+     Scaled[0.05]}},
+  Ticks->{Automatic, None}]], "Output",
+ CellChangeTimes->{{3.910283584847328*^9, 3.91028360951114*^9}, 
+   3.910283933083653*^9, 3.9108977916923857`*^9, 3.910915704103462*^9},
+ CellLabel->
+  "Out[481]=",ExpressionUUID->"41ac134a-1cc0-4255-bc2c-26b2ae1270fd"],
+
+Cell["\<\
+Professor John Kindt had the highest count of articles matching words from \
+the dictionary with 64 articles. Further analysis can be taken to observe and \
+identify the courses that each professor teaches to understand how professors \
+are additionally contributing to ESG education. \
+\>", "Program",
+ CellChangeTimes->{{3.910810323163916*^9, 3.910810357778997*^9}, {
+  3.9109186258631887`*^9, 3.9109186373867693`*^9}, {3.910922700092483*^9, 
+  3.910922791631531*^9}, {3.910923878713582*^9, 
+  3.910923883449037*^9}},ExpressionUUID->"b63d0ffd-78a3-44dc-be7f-\
+5bb6b1ad05a3"],
+
+Cell[CellGroupData[{
+
+Cell[TextData[StyleBox["Count of articles by department",
+ FontWeight->"Bold"]], "Text",
+ CellGroupingRules->{"GroupTogetherGrouping", 10000.},
+ CellChangeTimes->{{3.911003426454907*^9, 
+  3.911003437256507*^9}},ExpressionUUID->"14f27a8d-dd0a-403c-bab6-\
+bfcd8e55c4b6"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"BarChart", "[", 
+   RowBox[{
+    RowBox[{"Values", "[", "groupedCountsByDept", "]"}], ",", 
+    RowBox[{"BarOrigin", "->", "Left"}], ",", 
+    RowBox[{"ChartLabels", "->", 
+     RowBox[{"Placed", "[", 
+      RowBox[{
+       RowBox[{"Keys", "[", "groupedCountsByDept", "]"}], ",", "Before"}], 
+      "]"}]}], ",", 
+    RowBox[{"LabelingFunction", "->", 
+     RowBox[{"(", 
+      RowBox[{
+       RowBox[{"Placed", "[", 
+        RowBox[{"#", ",", "After"}], "]"}], "&"}], ")"}]}], ",", 
+    RowBox[{"ChartStyle", "->", "\"\<Pastel\>\""}], ",", 
+    RowBox[{"AxesLabel", "->", 
+     RowBox[{"{", 
+      RowBox[{"\"\<Department\>\"", ",", "\"\<Count\>\""}], "}"}]}], ",", 
+    RowBox[{"ImageSize", "->", "800"}], ",", " ", 
+    RowBox[{"PlotLabel", "->", "\"\<Count of Articles by Department\>\""}]}], 
+   "]"}], "\[IndentingNewLine]"}]], "Input",
+ CellGroupingRules->{"GroupTogetherGrouping", 10000.},
+ CellChangeTimes->{{3.910283616139615*^9, 3.9102836273441668`*^9}, 
+   3.910283701037854*^9, 3.9102849870826197`*^9, {3.9108968697045813`*^9, 
+   3.910896871865706*^9}, {3.910897947665105*^9, 3.910897952509098*^9}, {
+   3.910915697836878*^9, 3.910915698162561*^9}, {3.910918789564952*^9, 
+   3.910918790113278*^9}, {3.9109188221942263`*^9, 3.910918826568433*^9}, 
+   3.9110034372565813`*^9},
+ CellLabel->
+  "In[597]:=",ExpressionUUID->"1d71e28f-d033-4f94-94b4-6dee9c3d7162"]
+}, Closed]],
+
+Cell[BoxData[
+ GraphicsBox[{
+   {Opacity[0], 
+    PointBox[{{0., 0.45075018208302986`}, {0., 5.451201747997087}}]}, {{}, 
+    {RGBColor[0.982864, 0.7431472, 0.3262672], EdgeForm[{Opacity[
+     0.6649999999999999], Thickness[Small]}], 
+     {RGBColor[0.761959, 0.470832, 0.940597], EdgeForm[{Opacity[
+      0.6649999999999999], Thickness[Small]}], 
+      RectangleBox[{0., 0.5487982520029133}, {102., 1.4512017479970867},
+       RoundingRadius->0]}, 
+     {RGBColor[0.898695, 0.686452, 0.6785475], EdgeForm[{Opacity[
+      0.6649999999999999], Thickness[Small]}], 
+      RectangleBox[{0., 1.5487982520029133}, {429., 2.4512017479970867},
+       RoundingRadius->0]}, 
+     {RGBColor[0.9584254999999999, 0.877884, 0.5906629999999999], EdgeForm[{
+      Opacity[0.6649999999999999], Thickness[Small]}], 
+      RectangleBox[{0., 2.5487982520029133}, {135., 3.4512017479970867},
+       RoundingRadius->0]}, 
+     {RGBColor[0.86116075, 0.930182, 0.758764], EdgeForm[{Opacity[
+      0.6649999999999999], Thickness[Small]}], 
+      RectangleBox[{0., 3.5487982520029133}, {30., 4.451201747997087},
+       RoundingRadius->0]}, 
+     {RGBColor[0.431296, 0.709773, 0.927077], EdgeForm[{Opacity[
+      0.6649999999999999], Thickness[Small]}], 
+      RectangleBox[{0., 4.548798252002913}, {0., 5.451201747997087},
+       RoundingRadius->0]}}, {}, {}}, {}, {
+    InsetBox["\<\"Accountancy\"\>", Offset[{-6, 0}, {0., 1.}], 
+     ImageScaled[{1, 0.5}]], 
+    InsetBox["102", Offset[{6, 0}, {102., 1.}], ImageScaled[{0, 0.5}]], 
+    InsetBox["\<\"Business Administration\"\>", Offset[{-6, 0}, {0., 2.}], 
+     ImageScaled[{1, 0.5}]], 
+    InsetBox["429", Offset[{6, 0}, {429., 2.}], ImageScaled[{0, 0.5}]], 
+    InsetBox["\<\"Finance\"\>", Offset[{-6, 0}, {0., 3.}], 
+     ImageScaled[{1, 0.5}]], 
+    InsetBox["135", Offset[{6, 0}, {135., 3.}], ImageScaled[{0, 0.5}]], 
+    InsetBox["\<\"Office of the Dean\"\>", Offset[{-6, 0}, {0., 4.}], 
+     ImageScaled[{1, 0.5}]], 
+    InsetBox["30", Offset[{6, 0}, {30., 4.}], ImageScaled[{0, 0.5}]], 
+    InsetBox["\<\"Gies Business\"\>", Offset[{-6, 0}, {0., 5.}], 
+     ImageScaled[{1, 0.5}]], 
+    InsetBox["0", Offset[{6, 0}, {0., 5.}], ImageScaled[{0, 0.5}]]}, {}, {}, 
+   StyleBox[
+    StyleBox[{
+      {Thickness[Tiny], 
+       LineBox[{{0., 0.45075018208302986`}, {0., 5.551210779315368}}], 
+       StyleBox[
+        {Thickness[Tiny], InsetBox[
+          TagBox["\<\"Department\"\>",
+           HoldForm], Offset[{0., 10.}, {0., 5.451201747997087}], NCache[
+          ImageScaled[{Rational[1, 2], 0}], ImageScaled[{0.5, 0}]], 
+          Automatic, {1, 0}]}, "GraphicsLabel",
+        StripOnInput->False]}, 
+      StyleBox[{
+        {Thickness[Tiny], 
+         LineBox[{{0., 0.5487982520029133}, 
+           Offset[{-6., 0.}, {0., 0.5487982520029133}]}], 
+         LineBox[{{0., 5.451201747997087}, 
+           Offset[{-6., 0.}, {0., 
+            5.451201747997087}]}], {{}, {}, {}, {}, {}, {}, {}}}, 
+        StyleBox[{}, "GraphicsLabel",
+         StripOnInput->False]}, "GraphicsTicks",
+       StripOnInput->False]},
+     Antialiasing->False], "GraphicsAxes",
+    StripOnInput->False]},
+  AspectRatio->NCache[GoldenRatio^(-1), 0.6180339887498948],
+  Axes->{True, False},
+  AxesLabel->{
+    FormBox[
+     TagBox["\"Count\"", HoldForm], TraditionalForm], 
+    FormBox[
+     TagBox["\"Department\"", HoldForm], TraditionalForm]},
+  AxesOrigin->{0., 0.45075018208302986`},
+  CoordinatesToolOptions:>{"DisplayFunction" -> ({
+      Identity[
+       Part[#, 1]], 
+      Identity[
+       Part[#, 2]]}& ), "CopiedValueFunction" -> ({
+      Identity[
+       Part[#, 1]], 
+      Identity[
+       Part[#, 2]]}& )},
+  DisplayFunction->Identity,
+  FrameLabel->{{None, None}, {None, None}},
+  FrameTicks->{{Automatic, Automatic}, {Automatic, Automatic}},
+  GridLines->{None, None},
+  GridLinesStyle->Directive[
+    GrayLevel[0.5, 0.4]],
+  ImageSize->800,
+  PlotLabel->FormBox["\"Count of Articles by Department\"", TraditionalForm],
+  PlotRange->{{All, All}, {All, All}},
+  PlotRangePadding->{{
+     Scaled[0.02], 
+     Scaled[0.02]}, {
+     Scaled[0.02], 
+     Scaled[0.05]}},
+  Ticks->{Automatic, None}]], "Output",
+ CellChangeTimes->{
+  3.9102836285015182`*^9, 3.910283702734416*^9, 3.910284988308096*^9, {
+   3.910896726981913*^9, 3.910896730281681*^9}, 3.91089696718686*^9, 
+   3.910897795034992*^9, 3.910897953209552*^9, 3.910915698998355*^9, 
+   3.910918790825849*^9, 3.910918827271587*^9},
+ CellLabel->
+  "Out[597]=",ExpressionUUID->"e848e9c3-7a91-4ad4-8d04-18964c361bab"],
+
+Cell[CellGroupData[{
+
+Cell["Pie chart", "Text",
+ CellGroupingRules->{"GroupTogetherGrouping", 10000.},
+ CellChangeTimes->{{3.911003460077517*^9, 
+  3.911003470846416*^9}},ExpressionUUID->"6ccd33e1-0a75-4d6e-affb-\
+732c3a6136c8"],
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{"totalCount", "=", 
+   RowBox[{"Total", "[", 
+    RowBox[{"Values", "[", "groupedCountsByDept", "]"}], "]"}]}], ";"}], "\n", 
+ RowBox[{
+  RowBox[{"departmentPercentages", "=", 
+   RowBox[{
+    RowBox[{
+     RowBox[{"N", "[", 
+      RowBox[{
+       RowBox[{"(", 
+        RowBox[{"#", "/", "totalCount"}], ")"}], "*", "100"}], "]"}], "&"}], "/@",
+     "groupedCountsByDept"}]}], ";"}], "\n", 
+ RowBox[{"PieChart", "[", 
+  RowBox[{
+   RowBox[{"Values", "[", "departmentPercentages", "]"}], ",", 
+   RowBox[{"ChartLabels", "->", 
+    RowBox[{"Placed", "[", 
+     RowBox[{
+      RowBox[{"Keys", "[", "departmentPercentages", "]"}], ",", 
+      "\"\<RadialCallout\>\""}], "]"}]}], ",", 
+   RowBox[{"LabelingFunction", "->", 
+    RowBox[{"(", 
+     RowBox[{
+      RowBox[{"Placed", "[", 
+       RowBox[{
+        RowBox[{"StringForm", "[", 
+         RowBox[{"\"\<``%\>\"", ",", 
+          RowBox[{"NumberForm", "[", 
+           RowBox[{"#", ",", 
+            RowBox[{"{", 
+             RowBox[{"Infinity", ",", "2"}], "}"}]}], "]"}]}], "]"}], ",", 
+        "\"\<RadialCenter\>\""}], "]"}], "&"}], ")"}]}], ",", 
+   RowBox[{"ChartStyle", "->", "\"\<Pastel\>\""}], ",", 
+   RowBox[{
+   "PlotLabel", "->", "\"\<Percentage of Articles by Department\>\""}], ",", 
+   RowBox[{"ImageSize", "->", "480"}]}], "]"}]}], "Input",
+ CellGroupingRules->{"GroupTogetherGrouping", 10000.},
+ CellChangeTimes->{{3.9108991317234173`*^9, 3.910899202623374*^9}, {
+   3.910899461857275*^9, 3.9108994642120523`*^9}, {3.910899497774013*^9, 
+   3.910899498673778*^9}, {3.910899554148415*^9, 3.910899559797256*^9}, {
+   3.9108997252515163`*^9, 3.9108997269655237`*^9}, {3.910899885834929*^9, 
+   3.910899887682705*^9}, 3.910918759928233*^9, {3.910918809216626*^9, 
+   3.91091881759827*^9}, {3.910997458961241*^9, 3.910997459706133*^9}, {
+   3.910997504248116*^9, 3.910997520747074*^9}, 3.911003470846526*^9},
+ CellLabel->"In[21]:=",ExpressionUUID->"56c43d5f-97bf-4a71-bedc-5c7b87062fca"]
+}, Closed]],
+
+Cell[BoxData[
+ GraphicsBox[{{}, {}, 
+   DynamicModuleBox[{DynamicChart`click$6425$6516 = False, 
+    DynamicChart`click$6434$6516 = False, DynamicChart`click$6443$6516 = 
+    False, DynamicChart`click$6452$6516 = False}, {
+     {RGBColor[0.5, 0.5, 1.], EdgeForm[{GrayLevel[0], Opacity[0.5]}], {{{}, {
+         {RGBColor[0.761959, 0.470832, 0.940597], EdgeForm[{GrayLevel[0], 
+          Opacity[0.5]}], 
+          TagBox[GeometricTransformationBox[
+            TagBox[{{
+               TagBox[
+                DynamicBox[{
+                  FEPrivate`If[
+                   CurrentValue["MouseOver"], 
+                   EdgeForm[{
+                    GrayLevel[0.5], 
+                    AbsoluteThickness[2.5], 
+                    Opacity[0.66]}], {}, {}], 
+                  DiskBox[{0, 0}, 1., {2.220781013744509, 3.141592653589793}]},
+                 
+                 ImageSizeCache->{{101.49091464275506`, 
+                  300.9142135623731}, {-153.42202775156056`, 
+                  5.9142135623731065`}}],
+                "DelayedMouseEffectStyle"], {}}, {}},
+             
+             EventHandlerTag[{
+              "MouseClicked" :> FEPrivate`Set[DynamicChart`click$6425$6516, 
+                 FEPrivate`Not[DynamicChart`click$6425$6516]], PassEventsDown -> 
+               True, Method -> "Preemptive", PassEventsUp -> True}]], Dynamic[
+            FEPrivate`If[
+             DynamicChart`click$6425$6516, {{{1., 0.}, {0., 
+               1.}}, {-0.1791744521517376, 0.08886234127078071}}, {{1, 0}, {0,
+               1}}, {{1, 0}, {0, 1}}], 
+             TrackedSymbols :> {DynamicChart`click$6425$6516}]],
+           "DelayedClickEffect"]}, 
+         {RGBColor[0.898695, 0.686452, 0.6785475], EdgeForm[{GrayLevel[0], 
+          Opacity[0.5]}], 
+          TagBox[GeometricTransformationBox[
+            TagBox[{{
+               TagBox[
+                DynamicBox[{
+                  FEPrivate`If[
+                   CurrentValue["MouseOver"], 
+                   EdgeForm[{
+                    GrayLevel[0.5], 
+                    AbsoluteThickness[2.5], 
+                    Opacity[0.66]}], {}, {}], 
+                  
+                  DiskBox[{0, 0}, 1., {-1.6520444126635976`, 
+                   2.220781013744509}]},
+                 
+                 ImageSizeCache->{{179.1116391880464, 
+                  497.50908535724494`}, {-193.5090853572449, 
+                  202.50908535724497`}}],
+                "DelayedMouseEffectStyle"], {}}, {}},
+             
+             EventHandlerTag[{
+              "MouseClicked" :> FEPrivate`Set[DynamicChart`click$6434$6516, 
+                 FEPrivate`Not[DynamicChart`click$6434$6516]], PassEventsDown -> 
+               True, Method -> "Preemptive", PassEventsUp -> True}]], Dynamic[
+            FEPrivate`If[
+             DynamicChart`click$6434$6516, {{{1., 0.}, {0., 1.}}, {
+               0.19196781363638274`, 0.056110235498231756`}}, {{1, 0}, {0, 
+              1}}, {{1, 0}, {0, 1}}], 
+             TrackedSymbols :> {DynamicChart`click$6434$6516}]],
+           "DelayedClickEffect"]}, 
+         {RGBColor[0.9584254999999999, 0.877884, 0.5906629999999999], 
+          EdgeForm[{GrayLevel[0], Opacity[0.5]}], 
+          TagBox[GeometricTransformationBox[
+            TagBox[{{
+               TagBox[
+                DynamicBox[{
+                  FEPrivate`If[
+                   CurrentValue["MouseOver"], 
+                   EdgeForm[{
+                    GrayLevel[0.5], 
+                    AbsoluteThickness[2.5], 
+                    Opacity[0.66]}], {}, {}], 
+                  
+                  DiskBox[{0, 0}, 
+                   1., {-2.870765700694121, -1.6520444126635976`}]},
+                 
+                 ImageSizeCache->{{108.65679919036057`, 300.9142135623731}, {
+                  3.0857864376269504`, 201.86055614176138`}}],
+                "DelayedMouseEffectStyle"], {}}, {}},
+             
+             EventHandlerTag[{
+              "MouseClicked" :> FEPrivate`Set[DynamicChart`click$6443$6516, 
+                 FEPrivate`Not[DynamicChart`click$6443$6516]], PassEventsDown -> 
+               True, Method -> "Preemptive", PassEventsUp -> True}]], Dynamic[
+            FEPrivate`If[
+             DynamicChart`click$6443$6516, {{{1., 0.}, {0., 
+               1.}}, {-0.12740130895102145`, -0.15417167858451303`}}, {{1, 
+              0}, {0, 1}}, {{1, 0}, {0, 1}}], 
+             TrackedSymbols :> {DynamicChart`click$6443$6516}]],
+           "DelayedClickEffect"]}, 
+         {RGBColor[0.86116075, 0.930182, 0.758764], EdgeForm[{GrayLevel[0], 
+          Opacity[0.5]}], 
+          TagBox[GeometricTransformationBox[
+            TagBox[{{
+               TagBox[
+                DynamicBox[{
+                  FEPrivate`If[
+                   CurrentValue["MouseOver"], 
+                   EdgeForm[{
+                    GrayLevel[0.5], 
+                    AbsoluteThickness[2.5], 
+                    Opacity[0.66]}], {}, {}], 
+                  
+                  DiskBox[{0, 0}, 
+                   1., {-3.141592653589793, -2.870765700694121}]},
+                 
+                 ImageSizeCache->{{101.49091464275506`, 300.9142135623731}, {
+                  3.0857864376269077`, 58.50891297702045}}],
+                "DelayedMouseEffectStyle"], {}}, {}},
+             
+             EventHandlerTag[{
+              "MouseClicked" :> FEPrivate`Set[DynamicChart`click$6452$6516, 
+                 FEPrivate`Not[DynamicChart`click$6452$6516]], PassEventsDown -> 
+               True, Method -> "Preemptive", PassEventsUp -> True}]], Dynamic[
+            FEPrivate`If[
+             DynamicChart`click$6452$6516, {{{1., 0.}, {0., 
+               1.}}, {-0.19816911931576137`, -0.027000002770658078`}}, {{1, 
+              0}, {0, 1}}, {{1, 0}, {0, 1}}], 
+             TrackedSymbols :> {DynamicChart`click$6452$6516}]],
+           "DelayedClickEffect"]}, {}}}, {}}, {}}, {{{
+        TagBox[GeometricTransformationBox[
+          TagBox[{{{}, {{}, {
+               {GrayLevel[0.5], Thickness[0.002], Opacity[1], 
+                LineBox[{{-0.895872260758688, 
+                 0.44431170635390355`}, {-0.9854594868345569, 
+                 0.4887428769892939}}], 
+                LineBox[{{-0.9854594868345569, 
+                 0.4887428769892939}, {-1.0854594868345568`, 
+                 0.4887428769892939}}]}, 
+               {GrayLevel[0.5], Opacity[1], 
+                DiskBox[{-0.895872260758688, 0.44431170635390355`}, 
+                 0.016666666666666666]}, 
+               InsetBox["\<\"Accountancy\"\>", {-1.1212943772649044, 0.4887428769892939},
+                 NCache[
+                ImageScaled[{1, Rational[1, 2]}], 
+                 ImageScaled[{1, 0.5}]]]}}}, {{}, InsetBox[
+              
+              InterpretationBox["\<\"\\!\\(\\*FormBox[\\\"\\\\\\\"14.66\\\\\\\
+\"\\\", TraditionalForm]\\)%\"\>",
+               StringForm["``%", 
+                NumberForm[14.655172413793103`, {
+                  DirectedInfinity[1], 2}]],
+               Editable->False], {-0.5972481738391253, 0.2962078042359357}]}},
+           
+           
+           EventHandlerTag[{
+            "MouseClicked" :> FEPrivate`Set[DynamicChart`click$6425$6516, 
+               FEPrivate`Not[DynamicChart`click$6425$6516]], PassEventsDown -> 
+             True, Method -> "Preemptive", PassEventsUp -> True}]], Dynamic[
+          FEPrivate`If[
+           DynamicChart`click$6425$6516, {{{1., 0.}, {0., 
+             1.}}, {-0.1791744521517376, 0.08886234127078071}}, {{1, 0}, {0, 
+            1}}, {{1, 0}, {0, 1}}], 
+           TrackedSymbols :> {DynamicChart`click$6425$6516}]],
+         "DelayedClickEffect"], 
+        TagBox[GeometricTransformationBox[
+          TagBox[{{{}, {{}, {
+               {GrayLevel[0.5], Thickness[0.002], Opacity[1], 
+                LineBox[{{0.9598390681819137, 0.28055117749115877`}, {
+                 1.0558229750001051`, 0.30860629524027466`}}], 
+                LineBox[{{1.0558229750001051`, 0.30860629524027466`}, {
+                 1.1558229750001052`, 0.30860629524027466`}}]}, 
+               {GrayLevel[0.5], Opacity[1], 
+                DiskBox[{0.9598390681819137, 0.28055117749115877`}, 
+                 0.016666666666666666]}, 
+               InsetBox["\<\"Business Administration\"\>", {1.194216537727382, 0.30860629524027466},
+                 NCache[
+                ImageScaled[{0, Rational[1, 2]}], 
+                 ImageScaled[{0, 0.5}]]]}}}, {{}, InsetBox[
+              
+              InterpretationBox["\<\"\\!\\(\\*FormBox[\\\"\\\\\\\"61.64\\\\\\\
+\"\\\", TraditionalForm]\\)%\"\>",
+               StringForm["``%", 
+                NumberForm[61.63793103448276, {
+                  DirectedInfinity[1], 2}]],
+               Editable->False], {0.6398927121212757, 0.18703411832743916}]}},
+           
+           
+           EventHandlerTag[{
+            "MouseClicked" :> FEPrivate`Set[DynamicChart`click$6434$6516, 
+               FEPrivate`Not[DynamicChart`click$6434$6516]], PassEventsDown -> 
+             True, Method -> "Preemptive", PassEventsUp -> True}]], Dynamic[
+          FEPrivate`If[
+           DynamicChart`click$6434$6516, {{{1., 0.}, {0., 1.}}, {
+             0.19196781363638274`, 0.056110235498231756`}}, {{1, 0}, {0, 
+            1}}, {{1, 0}, {0, 1}}], 
+           TrackedSymbols :> {DynamicChart`click$6434$6516}]],
+         "DelayedClickEffect"], 
+        TagBox[GeometricTransformationBox[
+          TagBox[{{{}, {{}, {
+               {GrayLevel[0.5], Thickness[0.002], Opacity[1], 
+                LineBox[{{-0.6370065447551072, -0.7708583929225651}, \
+{-0.700707199230618, -0.8479442322148216}}], 
+                LineBox[{{-0.700707199230618, -0.8479442322148216}, \
+{-0.800707199230618, -0.8479442322148216}}]}, 
+               {GrayLevel[0.5], Opacity[1], 
+                DiskBox[{-0.6370065447551072, -0.7708583929225651}, 
+                 0.016666666666666666]}, 
+               InsetBox["\<\"Finance\"\>", {-0.8261874610208223, -0.8479442322148216},
+                 NCache[
+                ImageScaled[{1, Rational[1, 2]}], 
+                 ImageScaled[{1, 0.5}]]]}}}, {{}, InsetBox[
+              
+              InterpretationBox["\<\"\\!\\(\\*FormBox[\\\"\\\\\\\"19.40\\\\\\\
+\"\\\", TraditionalForm]\\)%\"\>",
+               StringForm["``%", 
+                NumberForm[19.396551724137932`, {
+                  DirectedInfinity[1], 2}]],
+               Editable->False], {-0.4246710298367381, -0.51390559528171}]}},
+           
+           EventHandlerTag[{
+            "MouseClicked" :> FEPrivate`Set[DynamicChart`click$6443$6516, 
+               FEPrivate`Not[DynamicChart`click$6443$6516]], PassEventsDown -> 
+             True, Method -> "Preemptive", PassEventsUp -> True}]], Dynamic[
+          FEPrivate`If[
+           DynamicChart`click$6443$6516, {{{1., 0.}, {0., 
+             1.}}, {-0.12740130895102145`, -0.15417167858451303`}}, {{1, 0}, {
+            0, 1}}, {{1, 0}, {0, 1}}], 
+           TrackedSymbols :> {DynamicChart`click$6443$6516}]],
+         "DelayedClickEffect"], 
+        TagBox[GeometricTransformationBox[
+          TagBox[{{{}, {{}, {
+               {GrayLevel[0.5], Thickness[0.002], Opacity[1], 
+                LineBox[{{-0.9908455965788068, -0.13500001385329038`}, \
+{-1.0899301562366874`, -0.14850001523861944`}}], 
+                LineBox[{{-1.0899301562366874`, -0.14850001523861944`}, \
+{-1.1899301562366875`, -0.14850001523861944`}}]}, 
+               {GrayLevel[0.5], Opacity[1], 
+                DiskBox[{-0.9908455965788068, -0.13500001385329038`}, 
+                 0.016666666666666666]}, 
+               InsetBox["\<\"Office of the Dean\"\>", {-1.22956398009984, -0.14850001523861944},
+                 NCache[
+                ImageScaled[{1, Rational[1, 2]}], 
+                 ImageScaled[{1, 0.5}]]]}}}, {{}, InsetBox[
+              
+              InterpretationBox["\<\"\\!\\(\\*FormBox[\\\"\\\\\\\"4.31\\\\\\\"\
+\\\", TraditionalForm]\\)%\"\>",
+               StringForm["``%", 
+                NumberForm[4.310344827586207, {
+                  DirectedInfinity[1], 2}]],
+               
+               Editable->
+                False], {-0.6605637310525379, -0.09000000923552692}]}},
+           
+           EventHandlerTag[{
+            "MouseClicked" :> FEPrivate`Set[DynamicChart`click$6452$6516, 
+               FEPrivate`Not[DynamicChart`click$6452$6516]], PassEventsDown -> 
+             True, Method -> "Preemptive", PassEventsUp -> True}]], Dynamic[
+          FEPrivate`If[
+           DynamicChart`click$6452$6516, {{{1., 0.}, {0., 
+             1.}}, {-0.19816911931576137`, -0.027000002770658078`}}, {{1, 
+            0}, {0, 1}}, {{1, 0}, {0, 1}}], 
+           TrackedSymbols :> {DynamicChart`click$6452$6516}]],
+         "DelayedClickEffect"], {}}, {}}, {}}, {}, {}},
+    DynamicModuleValues:>{}], {{}, {}}, {{{}, {}, {}, {}}, {}}},
+  ContentSelectable->False,
+  DisplayFunction->Identity,
+  GridLinesStyle->Directive[
+    GrayLevel[0.5, 0.4]],
+  ImageSize->480,
+  PlotLabel->FormBox[
+   "\"Percentage of Articles by Department\"", TraditionalForm],
+  PlotRange->{{-1.3, 1.3}, {-1.3, 1.3}},
+  PlotRangePadding->Scaled[0.07333333333333333]]], "Output",
+ CellChangeTimes->{{3.9108991599725523`*^9, 3.910899203219331*^9}, 
+   3.9108994648182707`*^9, 3.910899499226019*^9, {3.910899555747463*^9, 
+   3.910899560414028*^9}, 3.910899728109826*^9, 3.910899888381263*^9, 
+   3.910919777119424*^9, 3.9109974610657682`*^9, {3.910997501285576*^9, 
+   3.9109975213182983`*^9}},
+ CellLabel->"Out[23]=",ExpressionUUID->"aa702fab-7c71-4f78-9400-75ec8d22762f"],
+
+Cell["\<\
+The Business Administration department leads in the number of articles \
+related to UN sustainability goals, contributing 61.6% of the total with 429 \
+articles. Following closely, the Finance department contributes 19.4% with \
+135 articles, and the Accountancy department adds 14.7% with 102 articles. \
+This distribution may be influenced by the size of the Business \
+Administration department, being the largest in Gies, and its potential \
+inclusion of professors from diverse backgrounds resulting in more articles \
+related to ESG. In contrast, more specialized departments like Finance and \
+Accountancy are likely to focus primarily on their specific fields where \
+finding a connection to ESG may be more difficult.
+Further analysis can be conducted by including departments in other colleges, \
+especially the College of Agricultural, Consumer and Environmental Sciences \
+and the Grainger College of Engineering to expand the analysis within the \
+university. We can also look to further expand the analysis by finding \
+business colleges in comparable neighboring universities to gain a broader \
+perspective on their ESG efforts as well as find points of improvement. \
+\>", "Program",
+ CellChangeTimes->{{3.910809558664282*^9, 3.910809655020783*^9}, {
+  3.910920001721918*^9, 3.910920067885803*^9}, {3.9109201931169233`*^9, 
+  3.910920274081107*^9}, {3.910920315409913*^9, 3.910920406759707*^9}, {
+  3.9109205775417967`*^9, 3.910920592832003*^9}, {3.910920625325881*^9, 
+  3.9109206741990643`*^9}, {3.910922817612022*^9, 3.910922895872941*^9}, {
+  3.910922977650846*^9, 3.910922979483829*^9}, {3.910923011184772*^9, 
+  3.9109231690744667`*^9}, {3.910923202578166*^9, 3.910923225387457*^9}, {
+  3.910923934446209*^9, 
+  3.910923953431719*^9}},ExpressionUUID->"004fcaf6-d77d-402c-a7cd-\
+e9b44e9d266d"],
+
+Cell[CellGroupData[{
+
+Cell[TextData[StyleBox["Number of ESG articles Gies has produced by year",
+ FontWeight->"Bold"]], "Text",
+ CellGroupingRules->{"GroupTogetherGrouping", 10000.},
+ CellChangeTimes->{{3.911003488112049*^9, 3.911003516183279*^9}, {
+  3.9110036121675787`*^9, 
+  3.911003612701785*^9}},ExpressionUUID->"0b3fbc7f-33c6-4f81-8d1c-\
+974d46bd00a4"],
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{"groupedCountsByYear", "=", 
+   RowBox[{"GroupBy", "[", 
+    RowBox[{
+     RowBox[{"Transpose", "[", 
+      RowBox[{"{", 
+       RowBox[{"years", ",", "ecg"}], "}"}], "]"}], ",", 
+     RowBox[{"First", "->", "Last"}], ",", "Total"}], "]"}]}], ";"}], "\n", 
+ RowBox[{
+  RowBox[{"yearCountsList", "=", 
+   RowBox[{"Normal", "[", "groupedCountsByYear", "]"}]}], ";"}], "\n", 
+ RowBox[{
+  RowBox[{"sortedYearCounts", "=", 
+   RowBox[{"SortBy", "[", 
+    RowBox[{"yearCountsList", ",", "First"}], "]"}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"datesForChart", "=", 
+   RowBox[{"(", 
+    RowBox[{
+     RowBox[{
+      RowBox[{"{", 
+       RowBox[{"#", ",", "1", ",", "1"}], "}"}], "&"}], "/@", 
+     RowBox[{"Keys", "[", "sortedYearCounts", "]"}]}], ")"}]}], ";"}], "\n", 
+ RowBox[{
+  RowBox[{
+   RowBox[{"dateCountPairs", "=", 
+    RowBox[{"Transpose", "[", 
+     RowBox[{"{", 
+      RowBox[{"datesForChart", ",", 
+       RowBox[{"Values", "[", "sortedYearCounts", "]"}]}], "}"}], "]"}]}], 
+   ";"}], "\[IndentingNewLine]"}], "\[IndentingNewLine]", 
+ RowBox[{"DateListPlot", "[", 
+  RowBox[{"dateCountPairs", ",", 
+   RowBox[{"Joined", "->", "True"}], ",", 
+   RowBox[{"PlotMarkers", "->", "None"}], ",", 
+   RowBox[{"PlotRange", "->", "All"}], ",", 
+   RowBox[{"AxesLabel", "->", 
+    RowBox[{"{", 
+     RowBox[{"\"\<Year\>\"", ",", "\"\<Count\>\""}], "}"}]}], ",", " ", 
+   RowBox[{"ImageSize", "->", "800"}], ",", 
+   RowBox[{"PlotLabel", "->", "\"\<Count of Articles by Year\>\""}], ",", 
+   RowBox[{"DateTicksFormat", "->", 
+    RowBox[{"{", "\"\<Year\>\"", "}"}]}], ",", " ", 
+   RowBox[{"Frame", " ", "->", " ", "False"}], ",", "\[IndentingNewLine]", 
+   RowBox[{"Epilog", "->", 
+    RowBox[{"{", "\[IndentingNewLine]", 
+     RowBox[{"Red", ",", " ", 
+      RowBox[{"Line", "[", 
+       RowBox[{"{", 
+        RowBox[{
+         RowBox[{"{", 
+          RowBox[{
+           RowBox[{"DateObject", "[", 
+            RowBox[{"\"\<2009\>\"", ",", "\"\<Year\>\""}], "]"}], ",", "0"}], 
+          "}"}], ",", 
+         RowBox[{"{", 
+          RowBox[{
+           RowBox[{"DateObject", "[", 
+            RowBox[{"\"\<2009\>\"", ",", "\"\<Year\>\""}], "]"}], ",", "49"}],
+           "}"}]}], "}"}], "]"}], ",", "\[IndentingNewLine]", "Red", ",", " ", 
+      RowBox[{"Line", "[", 
+       RowBox[{"{", 
+        RowBox[{
+         RowBox[{"{", 
+          RowBox[{
+           RowBox[{"DateObject", "[", 
+            RowBox[{"\"\<2002\>\"", ",", "\"\<Year\>\""}], "]"}], ",", "0"}], 
+          "}"}], ",", 
+         RowBox[{"{", 
+          RowBox[{
+           RowBox[{"DateObject", "[", 
+            RowBox[{"\"\<2002\>\"", ",", "\"\<Year\>\""}], "]"}], ",", "25"}],
+           "}"}]}], "}"}], "]"}], ",", "\[IndentingNewLine]", "Red", ",", " ", 
+      RowBox[{"Line", "[", 
+       RowBox[{"{", 
+        RowBox[{
+         RowBox[{"{", 
+          RowBox[{
+           RowBox[{"DateObject", "[", 
+            RowBox[{"\"\<2021\>\"", ",", "\"\<Year\>\""}], "]"}], ",", "0"}], 
+          "}"}], ",", 
+         RowBox[{"{", 
+          RowBox[{
+           RowBox[{"DateObject", "[", 
+            RowBox[{"\"\<2021\>\"", ",", "\"\<Year\>\""}], "]"}], ",", "50"}],
+           "}"}]}], "}"}], "]"}], ",", "\[IndentingNewLine]", 
+      RowBox[{"Inset", "[", 
+       RowBox[{"\"\<2009: 46 articles\>\"", ",", 
+        RowBox[{"{", 
+         RowBox[{
+          RowBox[{"DateObject", "[", 
+           RowBox[{"\"\<2009\>\"", ",", "\"\<Year\>\""}], "]"}], ",", "50"}], 
+         "}"}]}], "]"}], ",", "\[IndentingNewLine]", 
+      RowBox[{"Inset", "[", 
+       RowBox[{"\"\<2002: 22 articles\>\"", ",", 
+        RowBox[{"{", 
+         RowBox[{
+          RowBox[{"DateObject", "[", 
+           RowBox[{"\"\<2002\>\"", ",", "\"\<Year\>\""}], "]"}], ",", "26"}], 
+         "}"}]}], "]"}], ",", "\[IndentingNewLine]", 
+      RowBox[{"Inset", "[", 
+       RowBox[{"\"\<2021: 49 articles\>\"", ",", 
+        RowBox[{"{", 
+         RowBox[{
+          RowBox[{"DateObject", "[", 
+           RowBox[{"\"\<2021\>\"", ",", "\"\<Year\>\""}], "]"}], ",", "51"}], 
+         "}"}]}], "]"}]}], "\[IndentingNewLine]", "}"}]}]}], "]"}]}], "Input",\
+
+ CellGroupingRules->{"GroupTogetherGrouping", 10000.},
+ CellChangeTimes->{{3.9102840996954517`*^9, 3.9102841037051363`*^9}, {
+   3.910284176834195*^9, 3.910284185963275*^9}, {3.910284254560669*^9, 
+   3.910284261151166*^9}, {3.9102843266682997`*^9, 3.9102844676384363`*^9}, {
+   3.9102850075267153`*^9, 3.9102850076750593`*^9}, {3.9108989352227793`*^9, 
+   3.910898937775908*^9}, {3.9108989827876167`*^9, 3.910899007025016*^9}, {
+   3.910899042096438*^9, 3.9108991075693607`*^9}, {3.910899232280457*^9, 
+   3.9108994165400343`*^9}, {3.910915497250942*^9, 3.910915557048835*^9}, {
+   3.910916110527446*^9, 3.910916128353671*^9}, {3.9109204684021807`*^9, 
+   3.9109204686213617`*^9}, {3.910997543200571*^9, 3.910997545180312*^9}, 
+   3.9110035161833563`*^9},ExpressionUUID->"b43485d3-8ffa-444f-8778-\
+1a39a0e430d8"]
+}, Closed]],
+
+Cell[BoxData[
+ GraphicsBox[{{}, 
+   InterpretationBox[{
+     TagBox[{{}, {}, 
+       TagBox[
+        {RGBColor[0.368417, 0.506779, 0.709798], PointSize[
+         0.011000000000000001`], AbsoluteThickness[2], LineBox[CompressedData["
+1:eJxV0UssA0EYB/CNk3okm5B4hKRoRB2kQqotSRdNy0kj0XDSiEqcNPG42iDO
+1XDisCROJLZnQrkK1snFoygt2ya9Ea/oN9mPbybZ2fzyn/lPZrdubGowVCAI
+giP/wDs/4hWmu27hfwStzgS1NjDLWZqLcVY3spz9Wes9dbxsAp1z5yeba4uz
+Erzl1kux6geaq1cBzuafKLpQyk8RywW6HGybLX6kubLuQwtg8WQRLYLl9BHa
+DDY7v7g8MupI0vOF5Rl0JeThXTVJ14vfmSTtkxusTzTP9Yc4B8ObT7RPOL5B
+W1h/quqZ3i9RGkDXgP3tUS7PLZ2jm1n/TlHKcCNYu/Si68HS+0KKfq9E31GK
+7vdPfaLt4PhaR9pwC9h2MM1ZK1HTXH9bBt0KVkeaXuj9zPI42sH6NQXtY/1v
+1+gOsFJb9Wq4DSx6htCdrH91Be1i/ftn6C5w5N6kG3ZL7NZenZ6vDC/odL84
+f6jTfnn7Q6d9uVN7xnAP66+ZNiz3sf7ePbQHHJ7UM3//4xeItKvw
+          "]]},
+        Annotation[#, "Charting`Private`Tag#1"]& ]},
+      {"WolframDynamicHighlight", <|
+       "Label" -> {"XYLabel"}, "Ball" -> {"InterpolatedBall"}|>}], 
+     DynamicBox[(Charting`HighlightActionBox["DynamicHighlight", {}, 
+       Slot["HighlightElements"], 
+       Slot["LayoutOptions"], 
+       Slot["Meta"], 
+       Charting`HighlightActionFunction["DynamicHighlight", {{{}, {}, 
+          Annotation[{
+            Hue[0.67, 0.6, 0.6], 
+            Directive[
+             PointSize[0.011000000000000001`], 
+             RGBColor[0.368417, 0.506779, 0.709798], 
+             AbsoluteThickness[2]], 
+            Line[CompressedData["
+1:eJxV0UssA0EYB/CNk3okm5B4hKRoRB2kQqotSRdNy0kj0XDSiEqcNPG42iDO
+1XDisCROJLZnQrkK1snFoygt2ya9Ea/oN9mPbybZ2fzyn/lPZrdubGowVCAI
+giP/wDs/4hWmu27hfwStzgS1NjDLWZqLcVY3spz9Wes9dbxsAp1z5yeba4uz
+Erzl1kux6geaq1cBzuafKLpQyk8RywW6HGybLX6kubLuQwtg8WQRLYLl9BHa
+DDY7v7g8MupI0vOF5Rl0JeThXTVJ14vfmSTtkxusTzTP9Yc4B8ObT7RPOL5B
+W1h/quqZ3i9RGkDXgP3tUS7PLZ2jm1n/TlHKcCNYu/Si68HS+0KKfq9E31GK
+7vdPfaLt4PhaR9pwC9h2MM1ZK1HTXH9bBt0KVkeaXuj9zPI42sH6NQXtY/1v
+1+gOsFJb9Wq4DSx6htCdrH91Be1i/ftn6C5w5N6kG3ZL7NZenZ6vDC/odL84
+f6jTfnn7Q6d9uVN7xnAP66+ZNiz3sf7ePbQHHJ7UM3//4xeItKvw
+             "]]}, "Charting`Private`Tag#1"]}}, <|
+        "HighlightElements" -> <|
+          "Label" -> {"XYLabel"}, "Ball" -> {"InterpolatedBall"}|>, 
+         "LayoutOptions" -> <|
+          "PlotRange" -> {{2.0827584*^9, 3.88152*^9}, {0, 49.}}, 
+           "Frame" -> {{False, False}, {False, False}}, 
+           "AxesOrigin" -> {2.0827584*^9, 0}, 
+           "ImageSize" -> {800, 800/GoldenRatio}, "Axes" -> {True, True}, 
+           "LabelStyle" -> {}, "AspectRatio" -> GoldenRatio^(-1), 
+           "DefaultStyle" -> {
+             Directive[
+              PointSize[0.011000000000000001`], 
+              RGBColor[0.368417, 0.506779, 0.709798], 
+              AbsoluteThickness[2]]}, 
+           "HighlightLabelingFunctions" -> <|"CoordinatesToolOptions" -> (({
+               DateString[
+                Part[#, 1], "DateShort"], 
+               Part[#, 2]}& )[{
+                Identity[
+                 Part[#, 1]], 
+                Identity[
+                 Part[#, 2]]}]& ), 
+             "ScalingFunctions" -> {{Identity, Identity}, {
+               Identity, Identity}}|>, "Primitives" -> {}, "GCFlag" -> 
+           False|>, 
+         "Meta" -> <|
+          "DefaultHighlight" -> {"Dynamic", None}, "Index" -> {}, "Function" -> 
+           DateListPlot, "GroupHighlight" -> False|>|>]]& )[<|
+       "HighlightElements" -> <|
+         "Label" -> {"XYLabel"}, "Ball" -> {"InterpolatedBall"}|>, 
+        "LayoutOptions" -> <|
+         "PlotRange" -> {{2.0827584*^9, 3.88152*^9}, {0, 49.}}, 
+          "Frame" -> {{False, False}, {False, False}}, 
+          "AxesOrigin" -> {2.0827584*^9, 0}, 
+          "ImageSize" -> {800, 800/GoldenRatio}, "Axes" -> {True, True}, 
+          "LabelStyle" -> {}, "AspectRatio" -> GoldenRatio^(-1), 
+          "DefaultStyle" -> {
+            Directive[
+             PointSize[0.011000000000000001`], 
+             RGBColor[0.368417, 0.506779, 0.709798], 
+             AbsoluteThickness[2]]}, 
+          "HighlightLabelingFunctions" -> <|"CoordinatesToolOptions" -> (({
+              DateString[
+               Part[#, 1], "DateShort"], 
+              Part[#, 2]}& )[{
+               Identity[
+                Part[#, 1]], 
+               Identity[
+                Part[#, 2]]}]& ), 
+            "ScalingFunctions" -> {{Identity, Identity}, {
+              Identity, Identity}}|>, "Primitives" -> {}, "GCFlag" -> False|>,
+         "Meta" -> <|
+         "DefaultHighlight" -> {"Dynamic", None}, "Index" -> {}, "Function" -> 
+          DateListPlot, "GroupHighlight" -> False|>|>],
+      ImageSizeCache->{{4.503599627370496*^15, -4.503599627370496*^15}, {
+       4.503599627370496*^15, -4.503599627370496*^15}}]},
+    Annotation[{{{}, {}, 
+       Annotation[{
+         Hue[0.67, 0.6, 0.6], 
+         Directive[
+          PointSize[0.011000000000000001`], 
+          RGBColor[0.368417, 0.506779, 0.709798], 
+          AbsoluteThickness[2]], 
+         Line[CompressedData["
+1:eJxV0UssA0EYB/CNk3okm5B4hKRoRB2kQqotSRdNy0kj0XDSiEqcNPG42iDO
+1XDisCROJLZnQrkK1snFoygt2ya9Ea/oN9mPbybZ2fzyn/lPZrdubGowVCAI
+giP/wDs/4hWmu27hfwStzgS1NjDLWZqLcVY3spz9Wes9dbxsAp1z5yeba4uz
+Erzl1kux6geaq1cBzuafKLpQyk8RywW6HGybLX6kubLuQwtg8WQRLYLl9BHa
+DDY7v7g8MupI0vOF5Rl0JeThXTVJ14vfmSTtkxusTzTP9Yc4B8ObT7RPOL5B
+W1h/quqZ3i9RGkDXgP3tUS7PLZ2jm1n/TlHKcCNYu/Si68HS+0KKfq9E31GK
+7vdPfaLt4PhaR9pwC9h2MM1ZK1HTXH9bBt0KVkeaXuj9zPI42sH6NQXtY/1v
+1+gOsFJb9Wq4DSx6htCdrH91Be1i/ftn6C5w5N6kG3ZL7NZenZ6vDC/odL84
+f6jTfnn7Q6d9uVN7xnAP66+ZNiz3sf7ePbQHHJ7UM3//4xeItKvw
+          "]]}, "Charting`Private`Tag#1"]}}, <|
+     "HighlightElements" -> <|
+       "Label" -> {"XYLabel"}, "Ball" -> {"InterpolatedBall"}|>, 
+      "LayoutOptions" -> <|
+       "PlotRange" -> {{2.0827584*^9, 3.88152*^9}, {0, 49.}}, 
+        "Frame" -> {{False, False}, {False, False}}, 
+        "AxesOrigin" -> {2.0827584*^9, 0}, 
+        "ImageSize" -> {800, 800/GoldenRatio}, "Axes" -> {True, True}, 
+        "LabelStyle" -> {}, "AspectRatio" -> GoldenRatio^(-1), "DefaultStyle" -> {
+          Directive[
+           PointSize[0.011000000000000001`], 
+           RGBColor[0.368417, 0.506779, 0.709798], 
+           AbsoluteThickness[2]]}, 
+        "HighlightLabelingFunctions" -> <|"CoordinatesToolOptions" -> (({
+            DateString[
+             Part[#, 1], "DateShort"], 
+            Part[#, 2]}& )[{
+             Identity[
+              Part[#, 1]], 
+             Identity[
+              Part[#, 2]]}]& ), 
+          "ScalingFunctions" -> {{Identity, Identity}, {
+            Identity, Identity}}|>, "Primitives" -> {}, "GCFlag" -> False|>, 
+      "Meta" -> <|
+       "DefaultHighlight" -> {"Dynamic", None}, "Index" -> {}, "Function" -> 
+        DateListPlot, "GroupHighlight" -> False|>|>, 
+     "DynamicHighlight"]], {{}, {}}},
+  AspectRatio->NCache[GoldenRatio^(-1), 0.6180339887498948],
+  Axes->{True, True},
+  AxesLabel->{
+    FormBox[
+     TagBox["\"Year\"", HoldForm], TraditionalForm], 
+    FormBox[
+     TagBox["\"Count\"", HoldForm], TraditionalForm]},
+  AxesOrigin->{2.0827584*^9, 0},
+  DisplayFunction->Identity,
+  Epilog->{
+    RGBColor[1, 0, 0], 
+    LineBox[{{3.4397568*^9, 0}, {3.4397568*^9, 49}}], 
+    RGBColor[1, 0, 0], 
+    LineBox[{{3.218832*^9, 0}, {3.218832*^9, 25}}], 
+    RGBColor[1, 0, 0], 
+    LineBox[{{3.818448*^9, 0}, {3.818448*^9, 50}}], 
+    TagBox[
+     InsetBox["2009: 46 articles", {3.4397568*^9, 50}], "InsetString"], 
+    TagBox[
+     InsetBox["2002: 22 articles", {3.218832*^9, 26}], "InsetString"], 
+    TagBox[
+     InsetBox["2021: 49 articles", {3.818448*^9, 51}], "InsetString"]},
+  Frame->{{False, False}, {False, False}},
+  FrameLabel->{{None, None}, {None, None}},
+  FrameTicks->{{Automatic, Automatic}, {
+     Charting`DateTicksFunction[Automatic, DateTicksFormat -> {"Year"}], 
+     Charting`DateTicksFunction[
+     Automatic, DateTicksFormat -> {"Year"}, "TickLabels" -> None]}},
+  GridLines->{None, None},
+  GridLinesStyle->Directive[
+    GrayLevel[0.5, 0.4]],
+  ImageSize->800,
+  Method->{
+   "NoShowPlotTheme" -> Automatic, "AxisPadding" -> Scaled[0.02], 
+    "DefaultBoundaryStyle" -> Automatic, 
+    "DefaultGraphicsInteraction" -> {
+     "Version" -> 1.2, "TrackMousePosition" -> {True, False}, 
+      "Effects" -> {
+       "Highlight" -> {"ratio" -> 2}, "HighlightPoint" -> {"ratio" -> 2}, 
+        "Droplines" -> {
+         "freeformCursorMode" -> True, 
+          "placement" -> {"x" -> "All", "y" -> "None"}}}}, "DefaultMeshStyle" -> 
+    AbsolutePointSize[6], "DefaultPlotStyle" -> {
+      Directive[
+       RGBColor[0.368417, 0.506779, 0.709798], 
+       AbsoluteThickness[2]], 
+      Directive[
+       RGBColor[0.880722, 0.611041, 0.142051], 
+       AbsoluteThickness[2]], 
+      Directive[
+       RGBColor[0.560181, 0.691569, 0.194885], 
+       AbsoluteThickness[2]], 
+      Directive[
+       RGBColor[0.922526, 0.385626, 0.209179], 
+       AbsoluteThickness[2]], 
+      Directive[
+       RGBColor[0.528488, 0.470624, 0.701351], 
+       AbsoluteThickness[2]], 
+      Directive[
+       RGBColor[0.772079, 0.431554, 0.102387], 
+       AbsoluteThickness[2]], 
+      Directive[
+       RGBColor[0.363898, 0.618501, 0.782349], 
+       AbsoluteThickness[2]], 
+      Directive[
+       RGBColor[1, 0.75, 0], 
+       AbsoluteThickness[2]], 
+      Directive[
+       RGBColor[0.647624, 0.37816, 0.614037], 
+       AbsoluteThickness[2]], 
+      Directive[
+       RGBColor[0.571589, 0.586483, 0.], 
+       AbsoluteThickness[2]], 
+      Directive[
+       RGBColor[0.915, 0.3325, 0.2125], 
+       AbsoluteThickness[2]], 
+      Directive[
+       RGBColor[0.40082222609352647`, 0.5220066643438841, 0.85], 
+       AbsoluteThickness[2]], 
+      Directive[
+       RGBColor[0.9728288904374106, 0.621644452187053, 0.07336199581899142], 
+       AbsoluteThickness[2]], 
+      Directive[
+       RGBColor[0.736782672705901, 0.358, 0.5030266573755369], 
+       AbsoluteThickness[2]], 
+      Directive[
+       RGBColor[0.28026441037696703`, 0.715, 0.4292089322474965], 
+       AbsoluteThickness[2]]}, "DomainPadding" -> Scaled[0.02], 
+    "PointSizeFunction" -> "SmallPointSize", "RangePadding" -> Scaled[0.05], 
+    "AllowMicroRanges" -> {True, False}, "OptimizePlotMarkers" -> True, 
+    "IncludeHighlighting" -> "CurrentSet", "HighlightStyle" -> Automatic, 
+    "OptimizePlotMarkers" -> True, 
+    "CoordinatesToolOptions" -> {"DisplayFunction" -> (({
+        DateString[
+         Part[#, 1], "DateShort"], 
+        Part[#, 2]}& )[{
+         Identity[
+          Part[#, 1]], 
+         Identity[
+          Part[#, 2]]}]& ), "CopiedValueFunction" -> (({
+        DateString[
+         Part[#, 1], "DateShort"], 
+        Part[#, 2]}& )[{
+         Identity[
+          Part[#, 1]], 
+         Identity[
+          Part[#, 2]]}]& )}},
+  PlotLabel->FormBox["\"Count of Articles by Year\"", TraditionalForm],
+  PlotRange->{{2.0827584*^9, 3.88152*^9}, {0, 49.}},
+  PlotRangeClipping->True,
+  PlotRangePadding->{{
+     Scaled[0.02], 
+     Scaled[0.02]}, {
+     Scaled[0.02], 
+     Scaled[0.05]}},
+  Ticks->FrontEndValueCache[{Charting`getDateTicks[Automatic, {"Year"}, 
+      (Map[DateList, {
+        SlotSequence[1]}]& )[
+       SlotSequence[1]], None, 5, {{0.0125, 0}, {0.0075, 0}}, Automatic]& , 
+     Automatic}, {{{1.8933696*^9, 
+       FormBox["\"1960\"", TraditionalForm], {0.008333333333333333, 0}}, {
+      2.5245216*^9, 
+       FormBox["\"1980\"", TraditionalForm], {0.008333333333333333, 0}}, {
+      3.1556736*^9, 
+       FormBox["\"2000\"", TraditionalForm], {0.008333333333333333, 0}}, {
+      3.7868256*^9, 
+       FormBox["\"2020\"", TraditionalForm], {0.008333333333333333, 0}}, {
+      4.4179776*^9, 
+       FormBox["\"2040\"", TraditionalForm], {0.008333333333333333, 0}}, {
+      1.8933696*^9, 
+       FormBox[
+        TemplateBox[{0, 0}, "Spacer2"], TraditionalForm], {
+       0.008333333333333333, 0}}, {2.0512224*^9, 
+       FormBox[
+        TemplateBox[{0, 0}, "Spacer2"], TraditionalForm], {
+       0.008333333333333333, 0}}, {2.2089888*^9, 
+       FormBox[
+        TemplateBox[{0, 0}, "Spacer2"], TraditionalForm], {
+       0.008333333333333333, 0}}, {2.3667552*^9, 
+       FormBox[
+        TemplateBox[{0, 0}, "Spacer2"], TraditionalForm], {
+       0.008333333333333333, 0}}, {2.5245216*^9, 
+       FormBox[
+        TemplateBox[{0, 0}, "Spacer2"], TraditionalForm], {
+       0.008333333333333333, 0}}, {2.6823744*^9, 
+       FormBox[
+        TemplateBox[{0, 0}, "Spacer2"], TraditionalForm], {
+       0.008333333333333333, 0}}, {2.8401408*^9, 
+       FormBox[
+        TemplateBox[{0, 0}, "Spacer2"], TraditionalForm], {
+       0.008333333333333333, 0}}, {2.9979072*^9, 
+       FormBox[
+        TemplateBox[{0, 0}, "Spacer2"], TraditionalForm], {
+       0.008333333333333333, 0}}, {3.1556736*^9, 
+       FormBox[
+        TemplateBox[{0, 0}, "Spacer2"], TraditionalForm], {
+       0.008333333333333333, 0}}, {3.3135264*^9, 
+       FormBox[
+        TemplateBox[{0, 0}, "Spacer2"], TraditionalForm], {
+       0.008333333333333333, 0}}, {3.4712928*^9, 
+       FormBox[
+        TemplateBox[{0, 0}, "Spacer2"], TraditionalForm], {
+       0.008333333333333333, 0}}, {3.6290592*^9, 
+       FormBox[
+        TemplateBox[{0, 0}, "Spacer2"], TraditionalForm], {
+       0.008333333333333333, 0}}, {3.7868256*^9, 
+       FormBox[
+        TemplateBox[{0, 0}, "Spacer2"], TraditionalForm], {
+       0.008333333333333333, 0}}}, Automatic}]]], "Output",
+ CellChangeTimes->{
+  3.910899322045246*^9, {3.910899367501973*^9, 3.910899417069331*^9}, {
+   3.910915504645069*^9, 3.910915557867889*^9}, {3.9109161120530767`*^9, 
+   3.910916129116494*^9}, 3.9109204692696123`*^9},
+ CellLabel->
+  "Out[606]=",ExpressionUUID->"c4af8959-4a55-4910-b158-067f4e8b692d"],
+
+Cell[CellGroupData[{
+
+Cell[TextData[StyleBox["Percentage of ESG articles by year",
+ FontWeight->"Bold"]], "Text",
+ CellGroupingRules->{"GroupTogetherGrouping", 10000.},
+ CellChangeTimes->{{3.911003535789557*^9, 
+  3.911003570776927*^9}},ExpressionUUID->"f02f435c-8ac9-47f8-8fec-\
+9bbd51cbc7c9"],
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{"groupedEsgCountsByYear", "=", 
+   RowBox[{"GroupBy", "[", 
+    RowBox[{
+     RowBox[{"Transpose", "[", 
+      RowBox[{"{", 
+       RowBox[{"years", ",", "ecg"}], "}"}], "]"}], ",", 
+     RowBox[{"First", "->", "Last"}], ",", "Total"}], "]"}]}], ";"}], "\n", 
+ RowBox[{
+  RowBox[{"esgCountsAssoc", "=", 
+   RowBox[{"Association", "[", 
+    RowBox[{"Normal", "[", "groupedEsgCountsByYear", "]"}], "]"}]}], 
+  ";"}], "\n", 
+ RowBox[{
+  RowBox[{"totalCountsByYear", "=", 
+   RowBox[{"Counts", "[", "years", "]"}]}], ";"}], "\n", 
+ RowBox[{
+  RowBox[{"percentageEsgByYear", "=", 
+   RowBox[{"KeyValueMap", "[", 
+    RowBox[{
+     RowBox[{
+      RowBox[{"{", 
+       RowBox[{"#1", ",", 
+        RowBox[{"If", "[", 
+         RowBox[{
+          RowBox[{
+           RowBox[{"totalCountsByYear", "[", "#1", "]"}], "!=", "0"}], ",", 
+          RowBox[{
+           RowBox[{"(", 
+            RowBox[{"#2", "/", 
+             RowBox[{"totalCountsByYear", "[", "#1", "]"}]}], ")"}], "*", 
+           "100"}], ",", "0"}], "]"}]}], "}"}], "&"}], ",", 
+     "esgCountsAssoc"}], "]"}]}], ";"}], "\n", 
+ RowBox[{
+  RowBox[{"sortedPercentageEsgByYear", "=", 
+   RowBox[{"SortBy", "[", 
+    RowBox[{"percentageEsgByYear", ",", "First"}], "]"}]}], ";"}], "\n", 
+ RowBox[{
+  RowBox[{"datesForChart", "=", 
+   RowBox[{"(", 
+    RowBox[{
+     RowBox[{
+      RowBox[{"{", 
+       RowBox[{"#", ",", "1", ",", "1"}], "}"}], "&"}], "/@", 
+     RowBox[{"sortedPercentageEsgByYear", "[", 
+      RowBox[{"[", 
+       RowBox[{"All", ",", "1"}], "]"}], "]"}]}], ")"}]}], ";"}], "\n", 
+ RowBox[{
+  RowBox[{"datePercentagePairs", "=", 
+   RowBox[{"Transpose", "[", 
+    RowBox[{"{", 
+     RowBox[{"datesForChart", ",", 
+      RowBox[{"sortedPercentageEsgByYear", "[", 
+       RowBox[{"[", 
+        RowBox[{"All", ",", "2"}], "]"}], "]"}]}], "}"}], "]"}]}], 
+  ";"}], "\n", 
+ RowBox[{"DateListPlot", "[", 
+  RowBox[{"datePercentagePairs", ",", 
+   RowBox[{"Joined", "->", "True"}], ",", 
+   RowBox[{"PlotMarkers", "->", "None"}], ",", 
+   RowBox[{"PlotRange", "->", 
+    RowBox[{"{", 
+     RowBox[{"All", ",", 
+      RowBox[{"{", 
+       RowBox[{"0", ",", "30"}], "}"}]}], "}"}]}], ",", 
+   RowBox[{"AxesLabel", "->", 
+    RowBox[{"{", 
+     RowBox[{"\"\<Year\>\"", ",", "\"\<Percentage\>\""}], "}"}]}], ",", 
+   RowBox[{"ImageSize", "->", "800"}], ",", 
+   RowBox[{"PlotLabel", "->", "\"\<Percentage of Articles by Year\>\""}], ",", 
+   RowBox[{"DateTicksFormat", "->", 
+    RowBox[{"{", "\"\<Year\>\"", "}"}]}], ",", " ", 
+   RowBox[{"Frame", " ", "->", " ", "False"}], ",", "\[IndentingNewLine]", 
+   RowBox[{"Epilog", "->", 
+    RowBox[{"{", "\[IndentingNewLine]", 
+     RowBox[{"Red", ",", " ", 
+      RowBox[{"Line", "[", 
+       RowBox[{"{", 
+        RowBox[{
+         RowBox[{"{", 
+          RowBox[{
+           RowBox[{"DateObject", "[", 
+            RowBox[{"\"\<2009\>\"", ",", "\"\<Year\>\""}], "]"}], ",", "0"}], 
+          "}"}], ",", 
+         RowBox[{"{", 
+          RowBox[{
+           RowBox[{"DateObject", "[", 
+            RowBox[{"\"\<2009\>\"", ",", "\"\<Year\>\""}], "]"}], ",", "30"}],
+           "}"}]}], "}"}], "]"}], ",", "\[IndentingNewLine]", "Red", ",", " ", 
+      RowBox[{"Line", "[", 
+       RowBox[{"{", 
+        RowBox[{
+         RowBox[{"{", 
+          RowBox[{
+           RowBox[{"DateObject", "[", 
+            RowBox[{"\"\<2002\>\"", ",", "\"\<Year\>\""}], "]"}], ",", "0"}], 
+          "}"}], ",", 
+         RowBox[{"{", 
+          RowBox[{
+           RowBox[{"DateObject", "[", 
+            RowBox[{"\"\<2002\>\"", ",", "\"\<Year\>\""}], "]"}], ",", "30"}],
+           "}"}]}], "}"}], "]"}], ",", "\[IndentingNewLine]", "Red", ",", " ", 
+      RowBox[{"Line", "[", 
+       RowBox[{"{", 
+        RowBox[{
+         RowBox[{"{", 
+          RowBox[{
+           RowBox[{"DateObject", "[", 
+            RowBox[{"\"\<2021\>\"", ",", "\"\<Year\>\""}], "]"}], ",", "0"}], 
+          "}"}], ",", 
+         RowBox[{"{", 
+          RowBox[{
+           RowBox[{"DateObject", "[", 
+            RowBox[{"\"\<2021\>\"", ",", "\"\<Year\>\""}], "]"}], ",", "30"}],
+           "}"}]}], "}"}], "]"}], ",", "\[IndentingNewLine]", 
+      RowBox[{"Inset", "[", 
+       RowBox[{"\"\<2009: 10.8%\>\"", ",", 
+        RowBox[{"{", 
+         RowBox[{
+          RowBox[{"DateObject", "[", 
+           RowBox[{"\"\<2009\>\"", ",", "\"\<Year\>\""}], "]"}], ",", "31"}], 
+         "}"}]}], "]"}], ",", "\[IndentingNewLine]", 
+      RowBox[{"Inset", "[", 
+       RowBox[{"\"\<2002: 12.8%\>\"", ",", 
+        RowBox[{"{", 
+         RowBox[{
+          RowBox[{"DateObject", "[", 
+           RowBox[{"\"\<2002\>\"", ",", "\"\<Year\>\""}], "]"}], ",", "26"}], 
+         "}"}]}], "]"}], ",", "\[IndentingNewLine]", 
+      RowBox[{"Inset", "[", 
+       RowBox[{"\"\<2021: 16%\>\"", ",", 
+        RowBox[{"{", 
+         RowBox[{
+          RowBox[{"DateObject", "[", 
+           RowBox[{"\"\<2021\>\"", ",", "\"\<Year\>\""}], "]"}], ",", "36"}], 
+         "}"}]}], "]"}]}], "\[IndentingNewLine]", "}"}]}]}], "]"}]}], "Input",\
+
+ CellGroupingRules->{"GroupTogetherGrouping", 10000.},
+ CellChangeTimes->{{3.910809275011675*^9, 3.910809277276248*^9}, {
+   3.910811718401679*^9, 3.9108117202294693`*^9}, 3.9108962812344503`*^9, {
+   3.9108987524367247`*^9, 3.9108988716769857`*^9}, {3.910898925071663*^9, 
+   3.9108989301526957`*^9}, 3.910912096905065*^9, {3.910915389226679*^9, 
+   3.9109153992548513`*^9}, {3.9109155663651457`*^9, 3.910915687032744*^9}, {
+   3.910920475296311*^9, 3.910920475618753*^9}, {3.910975627586649*^9, 
+   3.910975643395989*^9}, 3.911003570776998*^9},
+ CellLabel->
+  "In[196]:=",ExpressionUUID->"3b75e037-ad42-4d3a-a4a4-b296f4f93569"]
+}, Closed]],
+
+Cell[BoxData[
+ GraphicsBox[{{}, 
+   InterpretationBox[{
+     TagBox[{{}, {}, 
+       TagBox[
+        {RGBColor[0.368417, 0.506779, 0.709798], PointSize[
+         0.011000000000000001`], AbsoluteThickness[2], LineBox[CompressedData["
+1:eJxVkm1IU1EYgG+RoqVpDZrajJmmjkoXy9SMuZeZFWmOQDFBWqap9cPp1PBH
+JCquL2GKBZrFFEryo+5+RGmpSwz7IFMogj782N12t92r+EcSm9LO2yT3ci6X
+h3POc973vCeioOxs0WaKopLcH/m7wyT0nwHqf6glybMbeTKryosV1UYvpjvm
+vVg1L5nbyCbBpTno7SEhVbhZerRrfV5C2KCe9lqvMIaZPRxF5ulvOWbP/jDC
+4rUWMyhrAq0JrfGE9VGfzWAUpLiHDP1V2xjP/lj03z/BgHx5tj5IHkI4eLSe
+ge4+yZUP7XsJ19pHGBDmV04dFx5Ef7KLgbALA9077u1G//kkC1SIxstF45sI
+U42VFkjBA2MIa/poC9zQkRCif5W3wEQy26GdwPpqIyVWjz+c8OKpIitk8WNn
++LE9hNWaTisMZZW/D+6LRP+bX1Yo1Mh92YuYv4YNtcGgvet23OAuwrOBOTbQ
+YmB+qsMtNgjIvErPXBagv2HCBvG4AetT925loWkmbqnQhedNTqWzkA8ZT8XR
+uF6xXMeC4PvpkvjO1VTiPznCwp04IsB8VWV/WGhpJrGPsOluoh2Ka3a2Nc6j
+T/paa4elx4lDjkwx+gPodQ5Cv4y3w8DI87SFMvTR52IdkLDgs5bNbMf7ri10
+gAwD6zdNGhxw0yQPqTDg/Ul//3SAsn/Ur/laBPYzPNQJqbovW5h+Ed53WrYT
+chdKG6wPsV66tdkJ737IxgteYj7iV5+c4Kp+EsO8QL9+zp/7108d1kP5pXNQ
+6bvfPfC9GXLrODgGTuOYADn4+jAHJTpTU5EqGvv5aIWD9LZbbPtXzGfx4xEe
+BlbghM8w9ksv0vIQlCfqcXH4PinlMx7yMooPPXh7APtZyvGgnNYnWgIjFH8B
+nMwwUw==
+          "]]},
+        Annotation[#, "Charting`Private`Tag#1"]& ]},
+      {"WolframDynamicHighlight", <|
+       "Label" -> {"XYLabel"}, "Ball" -> {"InterpolatedBall"}|>}], 
+     DynamicBox[(Charting`HighlightActionBox["DynamicHighlight", {}, 
+       Slot["HighlightElements"], 
+       Slot["LayoutOptions"], 
+       Slot["Meta"], 
+       Charting`HighlightActionFunction["DynamicHighlight", {{{}, {}, 
+          Annotation[{
+            Hue[0.67, 0.6, 0.6], 
+            Directive[
+             PointSize[0.011000000000000001`], 
+             RGBColor[0.368417, 0.506779, 0.709798], 
+             AbsoluteThickness[2]], 
+            Line[CompressedData["
+1:eJxVkm1IU1EYgG+RoqVpDZrajJmmjkoXy9SMuZeZFWmOQDFBWqap9cPp1PBH
+JCquL2GKBZrFFEryo+5+RGmpSwz7IFMogj782N12t92r+EcSm9LO2yT3ci6X
+h3POc973vCeioOxs0WaKopLcH/m7wyT0nwHqf6glybMbeTKryosV1UYvpjvm
+vVg1L5nbyCbBpTno7SEhVbhZerRrfV5C2KCe9lqvMIaZPRxF5ulvOWbP/jDC
+4rUWMyhrAq0JrfGE9VGfzWAUpLiHDP1V2xjP/lj03z/BgHx5tj5IHkI4eLSe
+ge4+yZUP7XsJ19pHGBDmV04dFx5Ef7KLgbALA9077u1G//kkC1SIxstF45sI
+U42VFkjBA2MIa/poC9zQkRCif5W3wEQy26GdwPpqIyVWjz+c8OKpIitk8WNn
++LE9hNWaTisMZZW/D+6LRP+bX1Yo1Mh92YuYv4YNtcGgvet23OAuwrOBOTbQ
+YmB+qsMtNgjIvErPXBagv2HCBvG4AetT925loWkmbqnQhedNTqWzkA8ZT8XR
+uF6xXMeC4PvpkvjO1VTiPznCwp04IsB8VWV/WGhpJrGPsOluoh2Ka3a2Nc6j
+T/paa4elx4lDjkwx+gPodQ5Cv4y3w8DI87SFMvTR52IdkLDgs5bNbMf7ri10
+gAwD6zdNGhxw0yQPqTDg/Ul//3SAsn/Ur/laBPYzPNQJqbovW5h+Ed53WrYT
+chdKG6wPsV66tdkJ737IxgteYj7iV5+c4Kp+EsO8QL9+zp/7108d1kP5pXNQ
+6bvfPfC9GXLrODgGTuOYADn4+jAHJTpTU5EqGvv5aIWD9LZbbPtXzGfx4xEe
+BlbghM8w9ksv0vIQlCfqcXH4PinlMx7yMooPPXh7APtZyvGgnNYnWgIjFH8B
+nMwwUw==
+             "]]}, "Charting`Private`Tag#1"]}}, <|
+        "HighlightElements" -> <|
+          "Label" -> {"XYLabel"}, "Ball" -> {"InterpolatedBall"}|>, 
+         "LayoutOptions" -> <|
+          "PlotRange" -> {{2.0827584*^9, 3.88152*^9}, {0., 30.}}, 
+           "Frame" -> {{False, False}, {False, False}}, 
+           "AxesOrigin" -> {2.0827584*^9, 0}, 
+           "ImageSize" -> {800, 800/GoldenRatio}, "Axes" -> {True, True}, 
+           "LabelStyle" -> {}, "AspectRatio" -> GoldenRatio^(-1), 
+           "DefaultStyle" -> {
+             Directive[
+              PointSize[0.011000000000000001`], 
+              RGBColor[0.368417, 0.506779, 0.709798], 
+              AbsoluteThickness[2]]}, 
+           "HighlightLabelingFunctions" -> <|"CoordinatesToolOptions" -> (({
+               DateString[
+                Part[#, 1], "DateShort"], 
+               Part[#, 2]}& )[{
+                Identity[
+                 Part[#, 1]], 
+                Identity[
+                 Part[#, 2]]}]& ), 
+             "ScalingFunctions" -> {{Identity, Identity}, {
+               Identity, Identity}}|>, "Primitives" -> {}, "GCFlag" -> 
+           False|>, 
+         "Meta" -> <|
+          "DefaultHighlight" -> {"Dynamic", None}, "Index" -> {}, "Function" -> 
+           DateListPlot, "GroupHighlight" -> False|>|>]]& )[<|
+       "HighlightElements" -> <|
+         "Label" -> {"XYLabel"}, "Ball" -> {"InterpolatedBall"}|>, 
+        "LayoutOptions" -> <|
+         "PlotRange" -> {{2.0827584*^9, 3.88152*^9}, {0., 30.}}, 
+          "Frame" -> {{False, False}, {False, False}}, 
+          "AxesOrigin" -> {2.0827584*^9, 0}, 
+          "ImageSize" -> {800, 800/GoldenRatio}, "Axes" -> {True, True}, 
+          "LabelStyle" -> {}, "AspectRatio" -> GoldenRatio^(-1), 
+          "DefaultStyle" -> {
+            Directive[
+             PointSize[0.011000000000000001`], 
+             RGBColor[0.368417, 0.506779, 0.709798], 
+             AbsoluteThickness[2]]}, 
+          "HighlightLabelingFunctions" -> <|"CoordinatesToolOptions" -> (({
+              DateString[
+               Part[#, 1], "DateShort"], 
+              Part[#, 2]}& )[{
+               Identity[
+                Part[#, 1]], 
+               Identity[
+                Part[#, 2]]}]& ), 
+            "ScalingFunctions" -> {{Identity, Identity}, {
+              Identity, Identity}}|>, "Primitives" -> {}, "GCFlag" -> False|>,
+         "Meta" -> <|
+         "DefaultHighlight" -> {"Dynamic", None}, "Index" -> {}, "Function" -> 
+          DateListPlot, "GroupHighlight" -> False|>|>],
+      ImageSizeCache->{{4.503599627370496*^15, -4.503599627370496*^15}, {
+       4.503599627370496*^15, -4.503599627370496*^15}}]},
+    Annotation[{{{}, {}, 
+       Annotation[{
+         Hue[0.67, 0.6, 0.6], 
+         Directive[
+          PointSize[0.011000000000000001`], 
+          RGBColor[0.368417, 0.506779, 0.709798], 
+          AbsoluteThickness[2]], 
+         Line[CompressedData["
+1:eJxVkm1IU1EYgG+RoqVpDZrajJmmjkoXy9SMuZeZFWmOQDFBWqap9cPp1PBH
+JCquL2GKBZrFFEryo+5+RGmpSwz7IFMogj782N12t92r+EcSm9LO2yT3ci6X
+h3POc973vCeioOxs0WaKopLcH/m7wyT0nwHqf6glybMbeTKryosV1UYvpjvm
+vVg1L5nbyCbBpTno7SEhVbhZerRrfV5C2KCe9lqvMIaZPRxF5ulvOWbP/jDC
+4rUWMyhrAq0JrfGE9VGfzWAUpLiHDP1V2xjP/lj03z/BgHx5tj5IHkI4eLSe
+ge4+yZUP7XsJ19pHGBDmV04dFx5Ef7KLgbALA9077u1G//kkC1SIxstF45sI
+U42VFkjBA2MIa/poC9zQkRCif5W3wEQy26GdwPpqIyVWjz+c8OKpIitk8WNn
++LE9hNWaTisMZZW/D+6LRP+bX1Yo1Mh92YuYv4YNtcGgvet23OAuwrOBOTbQ
+YmB+qsMtNgjIvErPXBagv2HCBvG4AetT925loWkmbqnQhedNTqWzkA8ZT8XR
+uF6xXMeC4PvpkvjO1VTiPznCwp04IsB8VWV/WGhpJrGPsOluoh2Ka3a2Nc6j
+T/paa4elx4lDjkwx+gPodQ5Cv4y3w8DI87SFMvTR52IdkLDgs5bNbMf7ri10
+gAwD6zdNGhxw0yQPqTDg/Ul//3SAsn/Ur/laBPYzPNQJqbovW5h+Ed53WrYT
+chdKG6wPsV66tdkJ737IxgteYj7iV5+c4Kp+EsO8QL9+zp/7108d1kP5pXNQ
+6bvfPfC9GXLrODgGTuOYADn4+jAHJTpTU5EqGvv5aIWD9LZbbPtXzGfx4xEe
+BlbghM8w9ksv0vIQlCfqcXH4PinlMx7yMooPPXh7APtZyvGgnNYnWgIjFH8B
+nMwwUw==
+          "]]}, "Charting`Private`Tag#1"]}}, <|
+     "HighlightElements" -> <|
+       "Label" -> {"XYLabel"}, "Ball" -> {"InterpolatedBall"}|>, 
+      "LayoutOptions" -> <|
+       "PlotRange" -> {{2.0827584*^9, 3.88152*^9}, {0., 30.}}, 
+        "Frame" -> {{False, False}, {False, False}}, 
+        "AxesOrigin" -> {2.0827584*^9, 0}, 
+        "ImageSize" -> {800, 800/GoldenRatio}, "Axes" -> {True, True}, 
+        "LabelStyle" -> {}, "AspectRatio" -> GoldenRatio^(-1), "DefaultStyle" -> {
+          Directive[
+           PointSize[0.011000000000000001`], 
+           RGBColor[0.368417, 0.506779, 0.709798], 
+           AbsoluteThickness[2]]}, 
+        "HighlightLabelingFunctions" -> <|"CoordinatesToolOptions" -> (({
+            DateString[
+             Part[#, 1], "DateShort"], 
+            Part[#, 2]}& )[{
+             Identity[
+              Part[#, 1]], 
+             Identity[
+              Part[#, 2]]}]& ), 
+          "ScalingFunctions" -> {{Identity, Identity}, {
+            Identity, Identity}}|>, "Primitives" -> {}, "GCFlag" -> False|>, 
+      "Meta" -> <|
+       "DefaultHighlight" -> {"Dynamic", None}, "Index" -> {}, "Function" -> 
+        DateListPlot, "GroupHighlight" -> False|>|>, 
+     "DynamicHighlight"]], {{}, {}}},
+  AspectRatio->NCache[GoldenRatio^(-1), 0.6180339887498948],
+  Axes->{True, True},
+  AxesLabel->{
+    FormBox[
+     TagBox["\"Year\"", HoldForm], TraditionalForm], 
+    FormBox[
+     TagBox["\"Percentage\"", HoldForm], TraditionalForm]},
+  AxesOrigin->{2.0827584*^9, 0},
+  DisplayFunction->Identity,
+  Epilog->{
+    RGBColor[1, 0, 0], 
+    LineBox[{{3.4397568*^9, 0}, {3.4397568*^9, 30}}], 
+    RGBColor[1, 0, 0], 
+    LineBox[{{3.218832*^9, 0}, {3.218832*^9, 30}}], 
+    RGBColor[1, 0, 0], 
+    LineBox[{{3.818448*^9, 0}, {3.818448*^9, 30}}], 
+    TagBox[
+     InsetBox["2009: 10.8%", {3.4397568*^9, 31}], "InsetString"], 
+    TagBox[
+     InsetBox["2002: 12.8%", {3.218832*^9, 26}], "InsetString"], 
+    TagBox[
+     InsetBox["2021: 16%", {3.818448*^9, 36}], "InsetString"]},
+  Frame->{{False, False}, {False, False}},
+  FrameLabel->{{None, None}, {None, None}},
+  FrameTicks->{{Automatic, Automatic}, {
+     Charting`DateTicksFunction[Automatic, DateTicksFormat -> {"Year"}], 
+     Charting`DateTicksFunction[
+     Automatic, DateTicksFormat -> {"Year"}, "TickLabels" -> None]}},
+  GridLines->{None, None},
+  GridLinesStyle->Directive[
+    GrayLevel[0.5, 0.4]],
+  ImageSize->800,
+  Method->{
+   "NoShowPlotTheme" -> Automatic, "AxisPadding" -> Scaled[0.02], 
+    "DefaultBoundaryStyle" -> Automatic, 
+    "DefaultGraphicsInteraction" -> {
+     "Version" -> 1.2, "TrackMousePosition" -> {True, False}, 
+      "Effects" -> {
+       "Highlight" -> {"ratio" -> 2}, "HighlightPoint" -> {"ratio" -> 2}, 
+        "Droplines" -> {
+         "freeformCursorMode" -> True, 
+          "placement" -> {"x" -> "All", "y" -> "None"}}}}, "DefaultMeshStyle" -> 
+    AbsolutePointSize[6], "DefaultPlotStyle" -> {
+      Directive[
+       RGBColor[0.368417, 0.506779, 0.709798], 
+       AbsoluteThickness[2]], 
+      Directive[
+       RGBColor[0.880722, 0.611041, 0.142051], 
+       AbsoluteThickness[2]], 
+      Directive[
+       RGBColor[0.560181, 0.691569, 0.194885], 
+       AbsoluteThickness[2]], 
+      Directive[
+       RGBColor[0.922526, 0.385626, 0.209179], 
+       AbsoluteThickness[2]], 
+      Directive[
+       RGBColor[0.528488, 0.470624, 0.701351], 
+       AbsoluteThickness[2]], 
+      Directive[
+       RGBColor[0.772079, 0.431554, 0.102387], 
+       AbsoluteThickness[2]], 
+      Directive[
+       RGBColor[0.363898, 0.618501, 0.782349], 
+       AbsoluteThickness[2]], 
+      Directive[
+       RGBColor[1, 0.75, 0], 
+       AbsoluteThickness[2]], 
+      Directive[
+       RGBColor[0.647624, 0.37816, 0.614037], 
+       AbsoluteThickness[2]], 
+      Directive[
+       RGBColor[0.571589, 0.586483, 0.], 
+       AbsoluteThickness[2]], 
+      Directive[
+       RGBColor[0.915, 0.3325, 0.2125], 
+       AbsoluteThickness[2]], 
+      Directive[
+       RGBColor[0.40082222609352647`, 0.5220066643438841, 0.85], 
+       AbsoluteThickness[2]], 
+      Directive[
+       RGBColor[0.9728288904374106, 0.621644452187053, 0.07336199581899142], 
+       AbsoluteThickness[2]], 
+      Directive[
+       RGBColor[0.736782672705901, 0.358, 0.5030266573755369], 
+       AbsoluteThickness[2]], 
+      Directive[
+       RGBColor[0.28026441037696703`, 0.715, 0.4292089322474965], 
+       AbsoluteThickness[2]]}, "DomainPadding" -> Scaled[0.02], 
+    "PointSizeFunction" -> "SmallPointSize", "RangePadding" -> Scaled[0.05], 
+    "AllowMicroRanges" -> {True, False}, "OptimizePlotMarkers" -> True, 
+    "IncludeHighlighting" -> "CurrentSet", "HighlightStyle" -> Automatic, 
+    "OptimizePlotMarkers" -> True, 
+    "CoordinatesToolOptions" -> {"DisplayFunction" -> (({
+        DateString[
+         Part[#, 1], "DateShort"], 
+        Part[#, 2]}& )[{
+         Identity[
+          Part[#, 1]], 
+         Identity[
+          Part[#, 2]]}]& ), "CopiedValueFunction" -> (({
+        DateString[
+         Part[#, 1], "DateShort"], 
+        Part[#, 2]}& )[{
+         Identity[
+          Part[#, 1]], 
+         Identity[
+          Part[#, 2]]}]& )}},
+  PlotLabel->FormBox["\"Percentage of Articles by Year\"", TraditionalForm],
+  PlotRange->{{2.0827584*^9, 3.88152*^9}, {0., 30.}},
+  PlotRangeClipping->True,
+  PlotRangePadding->{{
+     Scaled[0.02], 
+     Scaled[0.02]}, {0, 0}},
+  Ticks->FrontEndValueCache[{Charting`getDateTicks[Automatic, {"Year"}, 
+      (Map[DateList, {
+        SlotSequence[1]}]& )[
+       SlotSequence[1]], None, 5, {{0.0125, 0}, {0.0075, 0}}, Automatic]& , 
+     Automatic}, {{{1.8933696*^9, 
+       FormBox["\"1960\"", TraditionalForm], {0.008333333333333333, 0}}, {
+      2.5245216*^9, 
+       FormBox["\"1980\"", TraditionalForm], {0.008333333333333333, 0}}, {
+      3.1556736*^9, 
+       FormBox["\"2000\"", TraditionalForm], {0.008333333333333333, 0}}, {
+      3.7868256*^9, 
+       FormBox["\"2020\"", TraditionalForm], {0.008333333333333333, 0}}, {
+      4.4179776*^9, 
+       FormBox["\"2040\"", TraditionalForm], {0.008333333333333333, 0}}, {
+      1.8933696*^9, 
+       FormBox[
+        TemplateBox[{0, 0}, "Spacer2"], TraditionalForm], {
+       0.008333333333333333, 0}}, {2.0512224*^9, 
+       FormBox[
+        TemplateBox[{0, 0}, "Spacer2"], TraditionalForm], {
+       0.008333333333333333, 0}}, {2.2089888*^9, 
+       FormBox[
+        TemplateBox[{0, 0}, "Spacer2"], TraditionalForm], {
+       0.008333333333333333, 0}}, {2.3667552*^9, 
+       FormBox[
+        TemplateBox[{0, 0}, "Spacer2"], TraditionalForm], {
+       0.008333333333333333, 0}}, {2.5245216*^9, 
+       FormBox[
+        TemplateBox[{0, 0}, "Spacer2"], TraditionalForm], {
+       0.008333333333333333, 0}}, {2.6823744*^9, 
+       FormBox[
+        TemplateBox[{0, 0}, "Spacer2"], TraditionalForm], {
+       0.008333333333333333, 0}}, {2.8401408*^9, 
+       FormBox[
+        TemplateBox[{0, 0}, "Spacer2"], TraditionalForm], {
+       0.008333333333333333, 0}}, {2.9979072*^9, 
+       FormBox[
+        TemplateBox[{0, 0}, "Spacer2"], TraditionalForm], {
+       0.008333333333333333, 0}}, {3.1556736*^9, 
+       FormBox[
+        TemplateBox[{0, 0}, "Spacer2"], TraditionalForm], {
+       0.008333333333333333, 0}}, {3.3135264*^9, 
+       FormBox[
+        TemplateBox[{0, 0}, "Spacer2"], TraditionalForm], {
+       0.008333333333333333, 0}}, {3.4712928*^9, 
+       FormBox[
+        TemplateBox[{0, 0}, "Spacer2"], TraditionalForm], {
+       0.008333333333333333, 0}}, {3.6290592*^9, 
+       FormBox[
+        TemplateBox[{0, 0}, "Spacer2"], TraditionalForm], {
+       0.008333333333333333, 0}}, {3.7868256*^9, 
+       FormBox[
+        TemplateBox[{0, 0}, "Spacer2"], TraditionalForm], {
+       0.008333333333333333, 0}}}, Automatic}]]], "Output",
+ CellChangeTimes->{
+  3.910896282416129*^9, 3.91089631770313*^9, 3.910898829030787*^9, {
+   3.9108988650554867`*^9, 3.910898872070024*^9}, 3.9108989308844633`*^9, 
+   3.9109120984103193`*^9, {3.910915394780624*^9, 3.910915399949482*^9}, {
+   3.910915567532277*^9, 3.9109156002243547`*^9}, {3.910915649395975*^9, 
+   3.910915687630381*^9}, 3.910920476169538*^9, {3.9109756295370293`*^9, 
+   3.910975643988267*^9}},
+ CellLabel->
+  "Out[203]=",ExpressionUUID->"6d90a1c6-ee38-4873-a948-65ca78cb4c8f"],
+
+Cell["\<\
+The initial line plot, showcasing the Count of Articles by Year, suggests a \
+surge in the number of articles, peaking at 49 in 2021. In contrast, the \
+Percentage of Articles by Year line plot presents a nuanced perspective, \
+revealing higher peaks in 1974 and 1980. This indicates that while recent \
+years have witnessed a substantial increase in overall article count, the \
+percentages have dipped due to the heightened count compared to the lower \
+pre-1980s article figures. Despite this, interest in ESG research has \
+remained relatively steady, exhibiting a slight upward trend post-2000.
+Further analysis can be conducted in two directions. First, the analysis can \
+pivot towards examining historical course offerings, facilitating a time \
+series analysis to discern trends in ESG education within Gies. Or extending \
+the analysis to encompass other colleges within the university would provide \
+a more comprehensive understanding of the institution's collective endeavors. \
+Second, conducting a comparative analysis on business colleges in neighboring \
+universities of similar standing can offer valuable insights into the broader \
+landscape of ESG initiatives within the academic realm.\
+\>", "Program",
+ CellChangeTimes->{{3.910920450555113*^9, 3.910920527507422*^9}, {
+   3.910920698136407*^9, 3.910920810849559*^9}, {3.910920869810689*^9, 
+   3.910920990735201*^9}, {3.910921071133651*^9, 3.910921088309045*^9}, {
+   3.910921118513731*^9, 3.910921128887246*^9}, 3.910921205630356*^9, {
+   3.910923987011015*^9, 3.910924030241817*^9}, {3.91092409558827*^9, 
+   3.910924129599503*^9}, {3.910924166952979*^9, 3.910924282049975*^9}, 
+   3.9109243261738043`*^9, {3.910924372641766*^9, 
+   3.910924471380733*^9}},ExpressionUUID->"ba57a8a8-fe9b-4190-a7d7-\
+c1c0c0f32975"],
+
+Cell[CellGroupData[{
+
+Cell[TextData[StyleBox["Word cloud of most frequent ESG keywords in articles",
+ 
+ FontWeight->"Bold"]], "Text",
+ CellGroupingRules->{"GroupTogetherGrouping", 10000.},
+ CellChangeTimes->{{3.911003622559629*^9, 
+  3.911003662519598*^9}},ExpressionUUID->"613e3d18-bf82-45a4-b93b-\
+a748034e85c5"],
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{
+   RowBox[{"articlesText", "=", 
+    RowBox[{"StringJoin", "@@", "articles"}]}], ";"}], 
+  " "}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"wordCounts", "=", 
+   RowBox[{"Table", "[", 
+    RowBox[{
+     RowBox[{"{", 
+      RowBox[{"word", ",", 
+       RowBox[{"StringCount", "[", 
+        RowBox[{"articlesText", ",", "word", ",", 
+         RowBox[{"IgnoreCase", "->", "True"}]}], "]"}]}], "}"}], ",", 
+     RowBox[{"{", 
+      RowBox[{"word", ",", "dictList"}], "}"}]}], "]"}]}], ";"}], "\n", 
+ RowBox[{"WordCloud", "[", 
+  RowBox[{"wordCounts", ",", " ", 
+   RowBox[{"ImageSize", "->", "500"}]}], "]"}]}], "Input",
+ CellGroupingRules->{"GroupTogetherGrouping", 10000.},
+ CellChangeTimes->{{3.910284588142017*^9, 3.91028460539577*^9}, {
+   3.910915902138714*^9, 3.910915913987155*^9}, {3.910916377779646*^9, 
+   3.910916383440036*^9}, 3.910916565972084*^9, 3.91091662589711*^9, 
+   3.911003662519672*^9},
+ CellLabel->
+  "In[529]:=",ExpressionUUID->"44791573-da81-471e-b7ff-4672b2516bbd"]
+}, Closed]],
+
+Cell[BoxData[
+ GraphicsBox[{InsetBox[
+    StyleBox["\<\"environment\"\>",
+     StripOnInput->False,
+     FontSize->Scaled[0.18426695255963552`],
+     FontColor->RGBColor[0.880722, 0.611041, 0.142051]], {0, 0}, Center, 
+    Automatic], InsetBox[
+    StyleBox["\<\"education\"\>",
+     StripOnInput->False,
+     FontSize->Scaled[0.19230769230769232`],
+     FontColor->RGBColor[0.368417, 0.506779, 0.709798]], {0., 51.}, Center, 
+    Automatic], InsetBox[
+    StyleBox["\<\"environmental\"\>",
+     StripOnInput->False,
+     FontSize->Scaled[0.12195121951219513`],
+     FontColor->RGBColor[0.922526, 0.385626, 0.209179]], {7., -43.}, Center, 
+    Automatic], InsetBox[
+    StyleBox["\<\"support\"\>",
+     StripOnInput->False,
+     FontSize->Scaled[0.11592066470115252`],
+     FontColor->RGBColor[0.528488, 0.470624, 0.701351]], {-8., -74.}, Center, 
+    Automatic], InsetBox[
+    StyleBox["\<\"security\"\>",
+     StripOnInput->False,
+     FontSize->Scaled[0.11089520235861701`],
+     FontColor->RGBColor[0.772079, 0.431554, 0.102387]], {22., 94.}, Center, 
+    Automatic], InsetBox[
+    StyleBox["\<\"health\"\>",
+     StripOnInput->False,
+     FontSize->Scaled[0.1420530688823372],
+     FontColor->RGBColor[0.560181, 0.691569, 0.194885]], {0., -114.}, Center, 
+    Automatic], InsetBox[
+    StyleBox["\<\"developing countries\"\>",
+     StripOnInput->False,
+     FontSize->Scaled[0.0355132672205843],
+     FontColor->RGBColor[
+      0.8439466852489265, 0.3467106629502147, 0.3309221912517893]], {-12., 111.},
+     Center, Automatic], InsetBox[
+    StyleBox["\<\"pandemic\"\>",
+     StripOnInput->False,
+     FontSize->Scaled[0.05259983918520504],
+     FontColor->RGBColor[1, 0.75, 0]], {-88., 88.}, Center, Automatic], 
+   InsetBox[
+    StyleBox["\<\"economic growth\"\>",
+     StripOnInput->False,
+     FontSize->Scaled[0.0365183596890914],
+     FontColor->RGBColor[
+      0.838355547812947, 0.44746667828057946`, 0.0208888695323676]], {0., 125.},
+     Center, Automatic], InsetBox[
+    StyleBox["\<\"sustainable development\"\>",
+     StripOnInput->False,
+     FontSize->Scaled[0.027472527472527476`],
+     FontColor->RGBColor[0.5472001045252132, 0.43417993728487203`, 0.85]], {117., -67.},
+     Center, Automatic], InsetBox[
+    StyleBox["\<\"health care\"\>",
+     StripOnInput->False,
+     FontSize->Scaled[0.05159474671669794],
+     FontColor->RGBColor[0.647624, 0.37816, 0.614037]], {108., -82.}, Center, 
+    Automatic], InsetBox[
+    StyleBox["\<\"climate change\"\>",
+     StripOnInput->False,
+     FontSize->Scaled[0.0355132672205843],
+     FontColor->RGBColor[0.8996399512215667, 0.7463488834690629, 0.]], {0., 138.},
+     Center, Automatic], InsetBox[
+    StyleBox["\<\"poverty alleviation\"\>",
+     StripOnInput->False,
+     FontSize->Scaled[0.027472527472527476`],
+     FontColor->RGBColor[0.7132613816472081, 0.358, 0.5392132590042952]], {-118., -67.},
+     Center, Automatic], InsetBox[
+    StyleBox["\<\"sustainable\"\>",
+     StripOnInput->False,
+     FontSize->Scaled[0.04154382203162691],
+     FontColor->RGBColor[
+      0.9728288904374106, 0.621644452187053, 0.07336199581899142]], {120., 71.},
+     Center, Automatic], InsetBox[
+    StyleBox["\<\"well-being\"\>",
+     StripOnInput->False,
+     FontSize->Scaled[0.0365183596890914],
+     FontColor->RGBColor[
+      0.5833680111493557, 0.4126186601628758, 0.8290799721266107]], {95., -98.},
+     Center, Automatic], InsetBox[
+    StyleBox["\<\"sustainability\"\>",
+     StripOnInput->False,
+     FontSize->Scaled[0.033503082283570094`],
+     FontColor->RGBColor[
+      0.6753413537738198, 0.3589675436319385, 0.5991466155654507]], {-114., -81.},
+     Center, Automatic], InsetBox[
+    StyleBox["\<\"healthcare\"\>",
+     StripOnInput->False,
+     FontSize->Scaled[0.04154382203162691],
+     FontColor->RGBColor[0.40082222609352647`, 0.5220066643438841, 0.85]], {-103., -97.},
+     Center, Automatic], InsetBox[
+    StyleBox["\<\"promote\"\>",
+     StripOnInput->False,
+     FontSize->Scaled[0.04053872956311981],
+     FontColor->RGBColor[0.736782672705901, 0.358, 0.5030266573755369]], {-5., -141.},
+     Center, Automatic], InsetBox[
+    StyleBox["\<\"unemployment\"\>",
+     StripOnInput->False,
+     FontSize->Scaled[0.027472527472527476`],
+     FontColor->RGBColor[0.9810598048862722, 0.7553955338762525, 0.]], {83., 116.},
+     Center, Automatic], InsetBox[
+    StyleBox["\<\"justice\"\>",
+     StripOnInput->False,
+     FontSize->Scaled[0.04455909943714822],
+     FontColor->RGBColor[0.571589, 0.586483, 0.]], {112., 87.}, Center, 
+    Automatic], InsetBox[
+    StyleBox["\<\"resource constraints\"\>",
+     StripOnInput->False,
+     FontSize->Scaled[0.027472527472527476`],
+     FontColor->RGBColor[
+      0.8564488486273256, 0.42032672705901153`, 0.06612212156831418]], {41., 18.},
+     Center, Automatic], InsetBox[
+    StyleBox["\<\"primary school\"\>",
+     StripOnInput->False,
+     FontSize->Scaled[0.027472527472527476`],
+     FontColor->RGBColor[0.37977756485605163`, 0.715, 0.3025558265468435]], {-103., 104.},
+     Center, Automatic], InsetBox[
+    StyleBox["\<\"global poverty\"\>",
+     StripOnInput->False,
+     FontSize->Scaled[0.027472527472527476`],
+     FontColor->RGBColor[0.7678998606330495, 0.7317110956258943, 0.]], {-82., 124.},
+     Center, Automatic], InsetBox[
+    StyleBox["\<\"global health\"\>",
+     StripOnInput->False,
+     FontSize->Scaled[0.027472527472527476`],
+     FontColor->RGBColor[
+      0.6184987019729621, 0.39212575718243875`, 0.7412532450675947]], {-97., -111.},
+     Center, Automatic], InsetBox[
+    StyleBox["\<\"inequality\"\>",
+     StripOnInput->False,
+     FontSize->Scaled[0.03249798981506299],
+     FontColor->RGBColor[0.5407932311309059, 0.715, 0.09762679674248334]], {94., -113.},
+     Center, Automatic], InsetBox[
+    StyleBox["\<\"health services\"\>",
+     StripOnInput->False,
+     FontSize->Scaled[0.028477619941034576`],
+     FontColor->RGBColor[0.7748409210981391, 0.358, 0.4444755060028629]], {-42., 70.},
+     Center, Automatic], InsetBox[
+    StyleBox["\<\"literacy\"\>",
+     StripOnInput->False,
+     FontSize->Scaled[0.0375234521575985],
+     FontColor->RGBColor[0.28026441037696703`, 0.715, 0.4292089322474965]], {72., 129.},
+     Center, Automatic], InsetBox[
+    StyleBox["\<\"food\"\>",
+     StripOnInput->False,
+     FontSize->Scaled[0.05259983918520504],
+     FontColor->RGBColor[0.363898, 0.618501, 0.782349]], {43., -145.}, Center,
+     Automatic], InsetBox[
+    StyleBox["\<\"equality\"\>",
+     StripOnInput->False,
+     FontSize->Scaled[0.033503082283570094`],
+     FontColor->RGBColor[
+      0.28240003484173815`, 0.6090799721266095, 0.7538800418100857]], {5., 151.},
+     Center, Automatic], InsetBox[
+    StyleBox["\<\"disparities\"\>",
+     StripOnInput->False,
+     FontSize->Scaled[0.027472527472527476`],
+     FontColor->RGBColor[
+      0.8613800418100862, 0.48092002787339083`, 0.02824203762907758]], {-57., -140.},
+     Center, Automatic], InsetBox[
+    StyleBox["\<\"humanitarian\"\>",
+     StripOnInput->False,
+     FontSize->Scaled[0.027472527472527476`],
+     FontColor->RGBColor[
+      0.8878600487784333, 0.33792799024431336`, 0.2577332520359445]], {-119., 70.},
+     Center, Automatic], InsetBox[
+    StyleBox["\<\"numeracy\"\>",
+     StripOnInput->False,
+     FontSize->Scaled[0.027472527472527476`],
+     FontColor->RGBColor[
+      0.35558897405758294`, 0.5505288207539337, 0.8417067688690995]], {-25., 18.},
+     Center, Automatic], InsetBox[
+    StyleBox["\<\"affordable\"\>",
+     StripOnInput->False,
+     FontSize->Scaled[0.028477619941034576`],
+     FontColor->RGBColor[
+      0.9874666782805795, 0.6948333914028977, 0.033839968642435214`]], {113., 101.},
+     Center, Automatic], InsetBox[
+    StyleBox["\<\"poverty\"\>",
+     StripOnInput->False,
+     FontSize->Scaled[0.030487804878048783`],
+     FontColor->RGBColor[0.47401116530937026`, 0.47809330081437784`, 0.85]], {-145., -31.},
+     Center, Automatic], InsetBox[
+    StyleBox["\<\"nutrition\"\>",
+     StripOnInput->False,
+     FontSize->Scaled[0.03149289734655589],
+     FontColor->RGBColor[
+      0.8857244243136628, 0.3764133635295058, 0.1393110607841571]], {-65., 135.},
+     Center, Automatic], InsetBox[
+    StyleBox["\<\"inclusive\"\>",
+     StripOnInput->False,
+     FontSize->Scaled[0.028477619941034576`],
+     FontColor->RGBColor[
+      0.16397784358994957`, 0.7038177251280403, 0.6117734123079395]], {-149., 18.},
+     Center, Automatic], InsetBox[
+    StyleBox["\<\"peace\"\>",
+     StripOnInput->False,
+     FontSize->Scaled[0.027472527472527476`],
+     FontColor->RGBColor[
+      0.9637822400302223, 0.5764112001511111, 0.0977879519184]], {6., 70.}, 
+    Center, Automatic], InsetBox[
+    StyleBox["\<\"HIV\"\>",
+     StripOnInput->False,
+     FontSize->Scaled[0.033503082283570094`],
+     FontColor->RGBColor[
+      0.9324333565611593, 0.5282889043741062, 0.0921900209050434]], {-79., -124.},
+     Center, Automatic], InsetBox[
+    StyleBox["\<\"TB\"\>",
+     StripOnInput->False,
+     FontSize->Scaled[0.04254891450013402],
+     FontColor->RGBColor[0.915, 0.3325, 0.2125]], {-140., -46.}, Center, 
+    Automatic]},
+  DefaultBaseStyle->{"Graphics", FontFamily -> "Source Sans Pro"},
+  ImageSize->500,
+  Method->{
+   "DefaultBoundaryStyle" -> Automatic, 
+    "DefaultGraphicsInteraction" -> {
+     "Version" -> 1.2, "TrackMousePosition" -> {True, False}, 
+      "Effects" -> {
+       "Highlight" -> {"ratio" -> 2}, "HighlightPoint" -> {"ratio" -> 2}, 
+        "Droplines" -> {
+         "freeformCursorMode" -> True, 
+          "placement" -> {"x" -> "All", "y" -> "None"}}}}, "DefaultPlotStyle" -> 
+    Automatic},
+  PlotRange->{{-181.5, 182.5}, {-154.5, 158.5}}]], "Output",
+ CellChangeTimes->{{3.910284591499708*^9, 3.910284608229413*^9}, {
+   3.910915910897513*^9, 3.910915915723983*^9}, {3.9109163788971663`*^9, 
+   3.910916385078919*^9}, 3.910916567674498*^9, 3.910916627645269*^9},
+ CellLabel->
+  "Out[531]=",ExpressionUUID->"aeaa0a1c-a811-4c90-98ab-49d24ef1c879"],
+
+Cell[CellGroupData[{
+
+Cell[TextData[StyleBox["Words by frequency count",
+ FontWeight->"Bold"]], "Text",
+ CellGroupingRules->{"GroupTogetherGrouping", 10000.},
+ CellChangeTimes->{{3.9110037028510237`*^9, 
+  3.9110037240633097`*^9}},ExpressionUUID->"5836cd66-a12c-4cdb-89ba-\
+e8a1062bd432"],
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{"sortedWordCounts", "=", 
+   RowBox[{"ReverseSortBy", "[", 
+    RowBox[{"wordCounts", ",", "Last"}], "]"}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"topWords", "=", 
+   RowBox[{"Take", "[", 
+    RowBox[{"sortedWordCounts", ",", "10"}], "]"}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{"BarChart", "[", 
+  RowBox[{
+   RowBox[{"Last", "/@", "topWords"}], ",", 
+   RowBox[{"BarOrigin", "->", "Left"}], ",", 
+   RowBox[{"ChartLabels", "->", 
+    RowBox[{"Placed", "[", 
+     RowBox[{
+      RowBox[{"First", "/@", "topWords"}], ",", "Before"}], "]"}]}], ",", 
+   RowBox[{"LabelingFunction", "->", 
+    RowBox[{"(", 
+     RowBox[{
+      RowBox[{"Placed", "[", 
+       RowBox[{"#", ",", "After"}], "]"}], "&"}], ")"}]}], ",", 
+   RowBox[{"ChartStyle", "->", "\"\<Pastel\>\""}], ",", 
+   RowBox[{"AxesLabel", "->", 
+    RowBox[{"{", 
+     RowBox[{"\"\<Word\>\"", ",", "\"\<Frequency\>\""}], "}"}]}], ",", 
+   RowBox[{"ImageSize", "->", "800"}], ",", 
+   RowBox[{
+   "PlotLabel", "->", 
+    "\"\<Top 10 Most Frequent Words from Dictionary\>\""}]}], "]"}]}], "Input",\
+
+ CellGroupingRules->{"GroupTogetherGrouping", 10000.},
+ CellChangeTimes->{{3.910284684818819*^9, 3.910284712232074*^9}, {
+   3.910915928208715*^9, 3.910915928554832*^9}, 3.9110037240633793`*^9},
+ CellLabel->
+  "In[488]:=",ExpressionUUID->"0b19bf7a-9360-4f6b-b62d-649b95f85136"]
+}, Closed]],
+
+Cell[BoxData[
+ GraphicsBox[{
+   {Opacity[0], 
+    PointBox[{{0., 0.3507501820830299}, {0., 10.451201747997086`}}]}, {{}, 
+    {RGBColor[0.982864, 0.7431472, 0.3262672], EdgeForm[{Opacity[0.63], 
+     Thickness[Small]}], 
+     {RGBColor[0.761959, 0.470832, 0.940597], EdgeForm[{Opacity[0.63], 
+      Thickness[Small]}], 
+      RectangleBox[{0., 0.5487982520029133}, {165., 1.4512017479970867},
+       RoundingRadius->0]}, 
+     {RGBColor[0.8223214444444444, 0.5994048888888889, 0.9129414444444445], 
+      EdgeForm[{Opacity[0.63], Thickness[Small]}], 
+      RectangleBox[{0., 1.5487982520029133}, {157., 2.4512017479970867},
+       RoundingRadius->0]}, 
+     {RGBColor[0.8855842222222222, 0.6706474444444445, 0.7165372222222222], 
+      EdgeForm[{Opacity[0.63], Thickness[Small]}], 
+      RectangleBox[{0., 2.5487982520029133}, {115., 3.4512017479970867},
+       RoundingRadius->0]}, 
+     {RGBColor[0.927848, 0.742785, 0.6151383333333333], EdgeForm[{Opacity[
+      0.63], Thickness[Small]}], 
+      RectangleBox[{0., 3.5487982520029133}, {95., 4.451201747997087},
+       RoundingRadius->0]}, 
+     {RGBColor[0.9526992222222223, 0.8336042222222222, 0.5885163333333333], 
+      EdgeForm[{Opacity[0.63], Thickness[Small]}], 
+      RectangleBox[{0., 4.548798252002913}, {89., 5.451201747997087},
+       RoundingRadius->0]}, 
+     {RGBColor[0.9606394444444444, 0.9179434444444444, 0.5985582222222222], 
+      EdgeForm[{Opacity[0.63], Thickness[Small]}], 
+      RectangleBox[{0., 5.548798252002913}, {84., 6.451201747997087},
+       RoundingRadius->0]}, 
+     {RGBColor[0.929162, 0.95034, 0.6648153333333333], EdgeForm[{Opacity[
+      0.63], Thickness[Small]}], 
+      RectangleBox[{0., 6.548798252002913}, {26., 7.451201747997087},
+       RoundingRadius->0]}, 
+     {RGBColor[0.8245341111111112, 0.9127775555555555, 0.7984788888888888], 
+      EdgeForm[{Opacity[0.63], Thickness[Small]}], 
+      RectangleBox[{0., 7.548798252002913}, {26., 8.451201747997086},
+       RoundingRadius->0]}, 
+     {RGBColor[0.6337922222222223, 0.8205023333333333, 0.9334427777777777], 
+      EdgeForm[{Opacity[0.63], Thickness[Small]}], 
+      RectangleBox[{0., 8.548798252002912}, {25., 9.451201747997086},
+       RoundingRadius->0]}, 
+     {RGBColor[0.431296, 0.709773, 0.927077], EdgeForm[{Opacity[0.63], 
+      Thickness[Small]}], 
+      RectangleBox[{0., 9.548798252002912}, {18., 10.451201747997086},
+       RoundingRadius->0]}}, {}, {}}, {}, {
+    InsetBox["\<\"education\"\>", Offset[{-6, 0}, {0., 1.}], 
+     ImageScaled[{1, 0.5}]], 
+    InsetBox["165", Offset[{6, 0}, {165., 1.}], ImageScaled[{0, 0.5}]], 
+    InsetBox["\<\"environment\"\>", Offset[{-6, 0}, {0., 2.}], 
+     ImageScaled[{1, 0.5}]], 
+    InsetBox["157", Offset[{6, 0}, {157., 2.}], ImageScaled[{0, 0.5}]], 
+    InsetBox["\<\"health\"\>", Offset[{-6, 0}, {0., 3.}], 
+     ImageScaled[{1, 0.5}]], 
+    InsetBox["115", Offset[{6, 0}, {115., 3.}], ImageScaled[{0, 0.5}]], 
+    InsetBox["\<\"environmental\"\>", Offset[{-6, 0}, {0., 4.}], 
+     ImageScaled[{1, 0.5}]], 
+    InsetBox["95", Offset[{6, 0}, {95., 4.}], ImageScaled[{0, 0.5}]], 
+    InsetBox["\<\"support\"\>", Offset[{-6, 0}, {0., 5.}], 
+     ImageScaled[{1, 0.5}]], 
+    InsetBox["89", Offset[{6, 0}, {89., 5.}], ImageScaled[{0, 0.5}]], 
+    InsetBox["\<\"security\"\>", Offset[{-6, 0}, {0., 6.}], 
+     ImageScaled[{1, 0.5}]], 
+    InsetBox["84", Offset[{6, 0}, {84., 6.}], ImageScaled[{0, 0.5}]], 
+    InsetBox["\<\"pandemic\"\>", Offset[{-6, 0}, {0., 7.}], 
+     ImageScaled[{1, 0.5}]], 
+    InsetBox["26", Offset[{6, 0}, {26., 7.}], ImageScaled[{0, 0.5}]], 
+    InsetBox["\<\"food\"\>", Offset[{-6, 0}, {0., 8.}], 
+     ImageScaled[{1, 0.5}]], 
+    InsetBox["26", Offset[{6, 0}, {26., 8.}], ImageScaled[{0, 0.5}]], 
+    InsetBox["\<\"health care\"\>", Offset[{-6, 0}, {0., 9.}], 
+     ImageScaled[{1, 0.5}]], 
+    InsetBox["25", Offset[{6, 0}, {25., 9.}], ImageScaled[{0, 0.5}]], 
+    InsetBox["\<\"justice\"\>", Offset[{-6, 0}, {0., 10.}], 
+     ImageScaled[{1, 0.5}]], 
+    InsetBox["18", Offset[{6, 0}, {18., 10.}], 
+     ImageScaled[{0, 0.5}]]}, {}, {}, 
+   StyleBox[
+    StyleBox[{
+      {Thickness[Tiny], 
+       LineBox[{{0., 0.3507501820830299}, {0., 10.653210779315367`}}], 
+       StyleBox[
+        {Thickness[Tiny], InsetBox[
+          TagBox["\<\"Word\"\>",
+           HoldForm], Offset[{0., 10.}, {0., 10.451201747997086}], NCache[
+          ImageScaled[{Rational[1, 2], 0}], ImageScaled[{0.5, 0}]], 
+          Automatic, {1, 0}]}, "GraphicsLabel",
+        StripOnInput->False]}, 
+      StyleBox[{
+        {Thickness[Tiny], 
+         LineBox[{{0., 0.5487982520029133}, 
+           Offset[{-6., 0.}, {0., 0.5487982520029133}]}], 
+         LineBox[{{0., 10.451201747997086`}, 
+           Offset[{-6., 0.}, {0., 
+            10.451201747997086`}]}], {{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}}}, 
+        StyleBox[{}, "GraphicsLabel",
+         StripOnInput->False]}, "GraphicsTicks",
+       StripOnInput->False]},
+     Antialiasing->False], "GraphicsAxes",
+    StripOnInput->False]},
+  AspectRatio->NCache[GoldenRatio^(-1), 0.6180339887498948],
+  Axes->{True, False},
+  AxesLabel->{
+    FormBox[
+     TagBox["\"Frequency\"", HoldForm], TraditionalForm], 
+    FormBox[
+     TagBox["\"Word\"", HoldForm], TraditionalForm]},
+  AxesOrigin->{0., 0.3507501820830299},
+  CoordinatesToolOptions:>{"DisplayFunction" -> ({
+      Identity[
+       Part[#, 1]], 
+      Identity[
+       Part[#, 2]]}& ), "CopiedValueFunction" -> ({
+      Identity[
+       Part[#, 1]], 
+      Identity[
+       Part[#, 2]]}& )},
+  DisplayFunction->Identity,
+  FrameLabel->{{None, None}, {None, None}},
+  FrameTicks->{{Automatic, Automatic}, {Automatic, Automatic}},
+  GridLines->{None, None},
+  GridLinesStyle->Directive[
+    GrayLevel[0.5, 0.4]],
+  ImageSize->800,
+  PlotLabel->FormBox[
+   "\"Top 10 Most Frequent Words from Dictionary\"", TraditionalForm],
+  PlotRange->{{All, All}, {All, All}},
+  PlotRangePadding->{{
+     Scaled[0.02], 
+     Scaled[0.02]}, {
+     Scaled[0.02], 
+     Scaled[0.05]}},
+  Ticks->{Automatic, None}]], "Output",
+ CellChangeTimes->{{3.91028468643172*^9, 3.910284713357575*^9}, 
+   3.910915929119381*^9},
+ CellLabel->
+  "Out[490]=",ExpressionUUID->"4416dc87-6be3-4f1a-a1fa-b7d331427763"],
+
+Cell["\<\
+The word cloud and bar chart provide a clear visual representation of the \
+prevalent topics within the Gies College of Business. Notably, \"Education\" \
+stands out prominently, closely followed by \"Environment\" and \"Health.\" \
+It's intriguing to observe that both \"Environment\" and \"Environmental\" \
+rank in the top five. This indicates a significant focus on the natural world \
+and the implications of human activity. Consequently, the research on \
+environmental topics appears to be more extensive than that on education.\
+\>", "Program",
+ CellChangeTimes->{{3.910921223650288*^9, 3.9109212567673264`*^9}, {
+   3.910921292388257*^9, 3.910921405792027*^9}, {3.910921480673889*^9, 
+   3.9109214973071213`*^9}, {3.910921595165265*^9, 3.910921703876556*^9}, 
+   3.9109224040865917`*^9},ExpressionUUID->"13d67386-14a1-4224-8a1f-\
+058933eb5217"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Conclusion ", "Subsection",
+ CellChangeTimes->{{3.911003770217675*^9, 
+  3.911003771265197*^9}},ExpressionUUID->"ef4e8c8a-6c95-4474-9069-\
+dfbc8ea4d2c1"],
+
+Cell["\<\
+Since the early 2000s, the Gies College of Business at the University of \
+Illinois Urbana-Champaign has shown a commendable and consistent enhancement \
+in its engagement with Environmental, Social, and Governance (ESG) related \
+topics. This upward trajectory is particularly evident in areas of education \
+and environmental sustainability, highlighting the college\[CloseCurlyQuote]s \
+commitment to addressing key aspects of the UN Sustainable Development Goals. \
+As faculty research delves deeper into these domains, the college not only \
+contributes valuable insights to global discussions on sustainability but \
+also sets a precedent for academic involvement in ESG matters.
+
+Looking ahead, the scope of this research will expand to include other \
+departments within UIUC, aiming to paint a comprehensive picture of the \
+university\[CloseCurlyQuote]s overall contributions to ESG goals. \
+Additionally, a comparative analysis with business schools at other \
+universities is planned. This will not only benchmark the progress of the \
+Gies College of Business but also foster a broader understanding of the role \
+of academic institutions in driving forward the agenda of sustainability and \
+social responsibility.\
+\>", "Text",
+ CellChangeTimes->{{3.91100389783605*^9, 
+  3.911003906245019*^9}},ExpressionUUID->"a6a2c6a8-2939-48db-a903-\
+55bdacfcff69"]
+}, Open  ]]
+}, If[{3} === Open, Closed, Open]]]
+},
+WindowSize->{1339, 1027},
+WindowMargins->{{-1689, Automatic}, {0, Automatic}},
+FrontEndVersion->"13.3 for Mac OS X ARM (64-bit) (July 24, 2023)",
+StyleDefinitions->"Default.nb",
+ExpressionUUID->"164881ad-4e8b-440f-a43e-bbd5418954f6"
+]
+(* End of Notebook Content *)
+
+(* Internal cache information *)
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+(*NotebookFileOutline
+Notebook[{
+Cell[CellGroupData[{
+Cell[580, 22, 310, 5, 123, "Title",ExpressionUUID->"cf0658b7-6fdf-4e5c-bd28-621f88828805"],
+Cell[893, 29, 173, 3, 67, "Subtitle",ExpressionUUID->"e389ec83-d388-45b6-87d8-f4dd92171454"],
+Cell[1069, 34, 278, 6, 56, "Subsubsection",ExpressionUUID->"1f5f5a62-7f4b-470c-934a-f2a2d72b0d96"],
+Cell[CellGroupData[{
+Cell[1372, 44, 181, 3, 46, "Subsection",ExpressionUUID->"63febecd-a599-4ce8-97db-95fc9205ba1f"],
+Cell[1556, 49, 2211, 37, 418, "Text",ExpressionUUID->"8c1b86ce-cbde-4b6f-8ef7-84e428f0ac34"],
+Cell[3770, 88, 516, 10, 64, "Input",ExpressionUUID->"57cd60bf-1d10-44d9-bd3b-d06e0b0ec704"]
+}, Closed]],
+Cell[CellGroupData[{
+Cell[4323, 103, 160, 3, 46, "Subsection",ExpressionUUID->"0997b2df-30cb-46e5-9d59-b15b100a6016"],
+Cell[4486, 108, 1421, 24, 217, "Text",ExpressionUUID->"cd0ca0b5-990b-4948-bb85-b15bcbf15103"],
+Cell[5910, 134, 283, 6, 37, "Input",ExpressionUUID->"c2952218-2bce-4c63-b54f-71f59d4b6fa0"]
+}, Closed]],
+Cell[CellGroupData[{
+Cell[6230, 145, 215, 4, 46, "Subsection",ExpressionUUID->"d5b3a8c8-a6bb-4e27-8005-b4adaa919557"],
+Cell[6448, 151, 1081, 17, 188, "Text",ExpressionUUID->"8028f83d-315b-41df-9593-d91ab2875a83"],
+Cell[CellGroupData[{
+Cell[7554, 172, 300, 5, 44, "Text",ExpressionUUID->"75a69ca2-b1e8-4c3c-a29b-addce64df80d",
+ CellGroupingRules->{"GroupTogetherGrouping", 10000.}],
+Cell[7857, 179, 4410, 139, 506, "Input",ExpressionUUID->"66ed45dc-153f-4881-b714-c6e1b6ecd70c",
+ CellGroupingRules->{"GroupTogetherGrouping", 10000.}],
+Cell[12270, 320, 270, 4, 37, "Input",ExpressionUUID->"c04846b0-1754-43c3-bedd-e796c0fdba0b",
+ CellGroupingRules->{"GroupTogetherGrouping", 10000.}],
+Cell[12543, 326, 655, 13, 42, "Output",ExpressionUUID->"cdd57e37-ca53-4f16-a1f5-c0fac0b90949",
+ CellGroupingRules->{"GroupTogetherGrouping", 10000.}],
+Cell[13201, 341, 1211, 32, 116, "Input",ExpressionUUID->"17eade60-658c-46af-ba56-715f2a41ecc5",
+ CellGroupingRules->{"GroupTogetherGrouping", 10000.}],
+Cell[14415, 375, 691, 13, 90, "Input",ExpressionUUID->"18d0bc02-fb49-497c-8a0b-d22e19146036",
+ CellGroupingRules->{"GroupTogetherGrouping", 10000.}],
+Cell[15109, 390, 845, 22, 90, "Input",ExpressionUUID->"e3abdb29-030d-438a-a918-141999bac5f9",
+ CellGroupingRules->{"GroupTogetherGrouping", 10000.}],
+Cell[15957, 414, 1801, 46, 220, "Input",ExpressionUUID->"32a3b46f-b9b7-43d9-839d-fca4a2ebff8a",
+ CellGroupingRules->{"GroupTogetherGrouping", 10000.}]
+}, Closed]]
+}, Closed]],
+Cell[CellGroupData[{
+Cell[17807, 466, 163, 3, 46, "Subsection",ExpressionUUID->"70ae719c-dc22-4e1a-b4f9-26677f9f8805"],
+Cell[CellGroupData[{
+Cell[17995, 473, 302, 6, 44, "Text",ExpressionUUID->"21ea3d05-289d-4686-9eec-f564a73086f0",
+ CellGroupingRules->{"GroupTogetherGrouping", 10000.}],
+Cell[18300, 481, 450, 11, 37, "Input",ExpressionUUID->"7e63d014-3cb9-4c20-b449-aa52260716e3",
+ CellGroupingRules->{"GroupTogetherGrouping", 10000.}],
+Cell[18753, 494, 1132, 39, 142, "Input",ExpressionUUID->"b8a36898-a24b-41dd-839b-64b00641cc34",
+ CellGroupingRules->{"GroupTogetherGrouping", 10000.}]
+}, Closed]],
+Cell[CellGroupData[{
+Cell[19922, 538, 277, 5, 38, "Text",ExpressionUUID->"3248c16d-971e-478c-bf36-05a4ffed77e4",
+ CellGroupingRules->{"GroupTogetherGrouping", 10001.}],
+Cell[20202, 545, 712, 19, 64, "Input",ExpressionUUID->"3e740dc9-08ba-482e-a0bc-66dda0f622a7",
+ CellGroupingRules->{"GroupTogetherGrouping", 10001.}],
+Cell[20917, 566, 626, 14, 64, "Input",ExpressionUUID->"3e826232-63cf-4a2d-b473-cbd05bc9ec0a",
+ CellGroupingRules->{"GroupTogetherGrouping", 10001.}],
+Cell[21546, 582, 730, 14, 42, "Output",ExpressionUUID->"374729d5-7761-40fa-a367-e54757c6d8c3",
+ CellGroupingRules->{"GroupTogetherGrouping", 10001.}],
+Cell[22279, 598, 1389, 31, 90, "Input",ExpressionUUID->"8ba135ec-8140-4761-881a-a91b15df86ec",
+ CellGroupingRules->{"GroupTogetherGrouping", 10001.}]
+}, Closed]],
+Cell[23683, 632, 6313, 136, 552, "Output",ExpressionUUID->"41ac134a-1cc0-4255-bc2c-26b2ae1270fd"],
+Cell[29999, 770, 586, 10, 105, "Program",ExpressionUUID->"b63d0ffd-78a3-44dc-be7f-5bb6b1ad05a3"],
+Cell[CellGroupData[{
+Cell[30610, 784, 269, 5, 44, "Text",ExpressionUUID->"14f27a8d-dd0a-403c-bab6-bfcd8e55c4b6",
+ CellGroupingRules->{"GroupTogetherGrouping", 10000.}],
+Cell[30882, 791, 1407, 31, 116, "Input",ExpressionUUID->"1d71e28f-d033-4f94-94b4-6dee9c3d7162",
+ CellGroupingRules->{"GroupTogetherGrouping", 10000.}]
+}, Closed]],
+Cell[32304, 825, 4496, 102, 560, "Output",ExpressionUUID->"e848e9c3-7a91-4ad4-8d04-18964c361bab"],
+Cell[CellGroupData[{
+Cell[36825, 931, 206, 4, 44, "Text",ExpressionUUID->"6ccd33e1-0a75-4d6e-affb-732c3a6136c8",
+ CellGroupingRules->{"GroupTogetherGrouping", 10000.}],
+Cell[37034, 937, 1987, 46, 142, "Input",ExpressionUUID->"56c43d5f-97bf-4a71-bedc-5c7b87062fca",
+ CellGroupingRules->{"GroupTogetherGrouping", 10000.}]
+}, Closed]],
+Cell[39036, 986, 13511, 275, 636, "Output",ExpressionUUID->"aa702fab-7c71-4f78-9400-75ec8d22762f"],
+Cell[52550, 1263, 1825, 27, 254, "Program",ExpressionUUID->"004fcaf6-d77d-402c-a7cd-e9b44e9d266d"],
+Cell[CellGroupData[{
+Cell[54400, 1294, 337, 6, 44, "Text",ExpressionUUID->"0b3fbc7f-33c6-4f81-8d1c-974d46bd00a4",
+ CellGroupingRules->{"GroupTogetherGrouping", 10000.}],
+Cell[54740, 1302, 4965, 121, 428, "Input",ExpressionUUID->"b43485d3-8ffa-444f-8778-1a39a0e430d8",
+ CellGroupingRules->{"GroupTogetherGrouping", 10000.}]
+}, Closed]],
+Cell[59720, 1426, 13533, 315, 661, "Output",ExpressionUUID->"c4af8959-4a55-4910-b158-067f4e8b692d"],
+Cell[CellGroupData[{
+Cell[73278, 1745, 272, 5, 44, "Text",ExpressionUUID->"f02f435c-8ac9-47f8-8fec-9bbd51cbc7c9",
+ CellGroupingRules->{"GroupTogetherGrouping", 10000.}],
+Cell[73553, 1752, 5655, 147, 506, "Input",ExpressionUUID->"3b75e037-ad42-4d3a-a4a4-b296f4f93569",
+ CellGroupingRules->{"GroupTogetherGrouping", 10000.}]
+}, Closed]],
+Cell[79223, 1902, 14839, 337, 665, "Output",ExpressionUUID->"6d90a1c6-ee38-4873-a948-65ca78cb4c8f"],
+Cell[94065, 2241, 1798, 26, 254, "Program",ExpressionUUID->"ba57a8a8-fe9b-4190-a7d7-c1c0c0f32975"],
+Cell[CellGroupData[{
+Cell[95888, 2271, 292, 6, 44, "Text",ExpressionUUID->"613e3d18-bf82-45a4-b93b-a748034e85c5",
+ CellGroupingRules->{"GroupTogetherGrouping", 10000.}],
+Cell[96183, 2279, 1027, 26, 90, "Input",ExpressionUUID->"44791573-da81-471e-b7ff-4672b2516bbd",
+ CellGroupingRules->{"GroupTogetherGrouping", 10000.}]
+}, Closed]],
+Cell[97225, 2308, 9928, 230, 556, "Output",ExpressionUUID->"aeaa0a1c-a811-4c90-98ab-49d24ef1c879"],
+Cell[CellGroupData[{
+Cell[107178, 2542, 266, 5, 44, "Text",ExpressionUUID->"5836cd66-a12c-4cdb-89ba-e8a1062bd432",
+ CellGroupingRules->{"GroupTogetherGrouping", 10000.}],
+Cell[107447, 2549, 1391, 37, 142, "Input",ExpressionUUID->"0b19bf7a-9360-4f6b-b62d-649b95f85136",
+ CellGroupingRules->{"GroupTogetherGrouping", 10000.}]
+}, Closed]],
+Cell[108853, 2589, 6215, 137, 577, "Output",ExpressionUUID->"4416dc87-6be3-4f1a-a1fa-b7d331427763"],
+Cell[115071, 2728, 863, 13, 126, "Program",ExpressionUUID->"13d67386-14a1-4224-8a1f-058933eb5217"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[115971, 2746, 159, 3, 67, "Subsection",ExpressionUUID->"ef4e8c8a-6c95-4474-9069-dfbc8ea4d2c1"],
+Cell[116133, 2751, 1377, 22, 303, "Text",ExpressionUUID->"a6a2c6a8-2939-48db-a903-55bdacfcff69"]
+}, Open  ]]
+}, If[{3} === Open, Closed, Open]]]
+}
+]
+*)
+
