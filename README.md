@@ -1,7 +1,7 @@
 # Data Analytics Portfolio
 ***Seunggyun Shin***
 
-Welcome to my Data Analytics Portfolio! This repository is a culmination of my journey in data analytics, showcasing my passion for uncovering insights, solving problems, and making data-driven decisions.
+Welcome to my Data Analytics Portfolio! This repository is a cumulation of my journey in data analytics, showcasing my passion for uncovering insights, solving problems, and making data-driven decisions.
 
 &emsp;
 &emsp;
