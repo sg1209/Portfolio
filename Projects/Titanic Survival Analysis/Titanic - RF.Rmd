@@ -1,0 +1,487 @@
+---
+title: "Kaggle - Titanic"
+author: "Seunggyun Shin"
+date: '2022 3 14 '
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Packages
+```{r, warning=F, message = F}
+library(ggplot2)
+library(tidyverse)
+library(sqldf)
+```
+
+
+**Intro**
+- Predict survival in titanic.
+
+**Data**
+- Variable
+  - survival : survival (0 = No, 1 = Yes)
+  - pclass : Ticket class (1 = 1st, 2 = 2nd, 3 = 3rd)
+  - sex : gender
+  - Age
+  - sibsp : number of siblings / spouses on Titanic
+  - Parch : number of parents / children on Titanic (Some children travelled only with a nanny, therefore parch=0 for them)
+  - ticket : Ticket number
+  - fare : the revenue earned from carrying a passenger in regularly scheduled service
+  - cabin : Cabin number
+  - embarked : Port of Embarkation (C = Cherbourg, Q = Queenstown, S = Southampton)
+
+**EDA**
+
+```{r}
+data = read.csv("train.csv")
+```
+
+```{r}
+str(data)
+```
+
+Fix variables into appropriate data type for Exploratory Data Analysis.
+```{r}
+data$PassengerId = as.factor(data$PassengerId)
+data$Survived = as.factor(data$Survived)
+data$Pclass = as.factor(data$Pclass)
+```
+
+```{r}
+str(data)
+```
+
+
+Search which variables have missing values.
+```{r}
+colSums(is.na(data))
+```
+
+
+*Pclass vs Survived*
+
+```{r}
+ggplot(data, aes(Pclass, ..count..)) + geom_bar(aes(fill = Survived),
+                                                position = "dodge")
+```
+
+```{r}
+#Death rate by the ticket class
+Death_rate_table_Pclass = table(data$Survived, data$Pclass)
+Death_rate_Pclass = c(0,0,0)
+for (i in 1:3){
+  Death_rate_Pclass[i] = Death_rate_table_Pclass[1,i] / (Death_rate_table_Pclass[1,i] + Death_rate_table_Pclass[2,i])
+}
+table1 = as.matrix(Death_rate_Pclass)
+colnames(table1)[1] = "Death Rate"
+rownames(table1) = c("1st", "2nd", "3rd")
+
+table1
+```
+
+- People with lower ticket class had higher death rate.
+
+
+
+*Sex vs Survived*
+```{r}
+ggplot(data, aes(Sex, ..count..)) + geom_bar(aes(fill = Survived),
+                                             position = "dodge")
+```
+
+```{r}
+#Death rate by Gender
+table_sex = table(data$Survived, data$Sex)
+Death_rate_sex = c(0,0)
+for (i in 1:2){
+  Death_rate_sex[i] = table_sex[1,i]/ (table_sex[1,i] + table_sex[2,i])
+}
+
+table2 = as.matrix(Death_rate_sex)
+colnames(table2)[1] = "Death Rate"
+rownames(table2) = c("Female", "Male")
+
+table2
+```
+
+- In fact, men had much higher death rate which tells that gender is highly related with survival in titanic.
+
+
+*Age vs Survived*
+Variable Age has missing values, so lets just plot them without observations with missing values at this point.
+```{r}
+df1 = data[ ,c("Survived", "Age")]
+df1 = na.omit(df1)
+df1$Age = as.integer(df1$Age)
+```
+
+```{r}
+df1_count = df1 %>%
+  group_by(Age, Survived) %>%
+  summarise(n = n())
+
+ggplot(df1_count, aes(x = Age, y = n, group = Survived)) +
+  geom_line(aes(color = Survived))
+```
+
+
+Well... since there are too many "Ages" so that it is hard to understand the visualization. So, lets try to categorize the Ages depending on the definition of Age group classification.
+
+- 0 ~ 12 : Child
+- 13 ~ 18 : Adolescence
+- 19 ~ 59 : Adult
+- 60 ~ : Senior
+
+I will say 19 ~ 39 : Young Adult as the range of Adult is much larger than the other group.
+```{r}
+df2 = df1
+
+df2$Age_group[df2$Age < 13] = "Child"
+df2$Age_group[df2$Age >= 60] = "Senior"
+df2$Age_group[(df2$Age >= 13) & (df2$Age < 19)] = "Adolescence"
+df2$Age_group[(df2$Age >= 19) & (df2$Age < 40)] = "Young Adult"
+df2$Age_group[(df2$Age >= 40) & (df2$Age <= 59)] = "Adult"
+```
+
+```{r}
+df2_count = df2 %>%
+  group_by(Age_group, Survived) %>%
+  summarise(n = n())
+
+
+df2_count$Age_group =  factor(df2_count$Age_group, levels = 
+                                c("Child", "Adolescence", "Young Adult", "Adult", "Senior"))
+```
+
+```{r}
+ggplot(df2_count, aes(x = Age_group, y = n, group = Survived)) +
+  geom_line(aes(color = Survived))
+```
+
+- Depending on the graph only people in the "child" age group had higher survival rate than their death rate. Age does not seem that significant at this point besides people in Young_adult age group had comparatively high death rate.
+
+
+
+*Survived vs Sibsp*
+```{r}
+ggplot(data = data, mapping = aes(x = SibSp,
+                                  y = ..count..)) + geom_bar(aes(fill = Survived), position = "dodge")
+```
+
+- People with 0 sibling and spouse tended to have high death rate on the titanic.
+
+
+*Survived vs Parch*
+
+```{r}
+ggplot(data = data, mapping = aes(x = Parch,
+                                  y = ..count..)) + geom_bar(aes(fill = Survived), position = "dodge")
+```
+- Just like SibSp, people with 0 families on the titanic tended to have high death rate.
+
+*Survival vs Embarked*
+```{r}
+ggplot(data = data, mapping = aes(x = Embarked,
+                                  y = ..count..)) + geom_bar(aes(fill = Survived), position = "dodge")
+```
+
+- Here I found there is missing values in Embarked.
+- People abroad from Southampton had much higher death rate.
+- Makes no sense for me that place one abroad has effect on the survival rate. So, I better check relationship with other prediction variable.
+
+
+*Cabin*
+
+```{r}
+nrow(data[data$Cabin == "", ])
+```
+- Total 687 observations have missing value in Cabin. The variable Cabin is impossible to fill the missing value so I might just get rid of the data frame.
+
+
+
+*Survived vs Fare*
+```{r}
+#Fare means revenue earned by the certain passenger
+#Better use histogram for visualization
+summary(data$Fare)
+```
+
+```{r}
+boxplot(data$Fare,
+        col = "skyblue")
+```
+
+```{r}
+df3 = data[ , c("Survived", "Fare")]
+
+#Depending on the summary divide the data into 4 part
+Q1 = summary(df3$Fare)[2]
+Q2 = summary(df3$Fare)[3]
+Q3 = summary(df3$Fare)[4]
+```
+
+Due to extremely large values, lets just use bar graph by categorizing the data.
+```{r}
+df3$Fare_group[df3$Fare < Q1] = "Very Low"
+df3$Fare_group[(df3$Fare >= Q1) & (df3$Fare < Q2)] = "Low"
+df3$Fare_group[(df3$Fare >= Q2) & (df3$Fare < Q3)] = "Normal"
+df3$Fare_group[(df3$Fare >= Q3) & (df3$Fare <= 100)] = "High"
+df3$Fare_group[df3$Fare > 100] = "Very High"
+
+df3$Fare_group = factor(df3$Fare_group, levels = c("Very Low", "Low", "Normal",
+                                                   "High", "Very High"))
+
+ggplot(data = df3, mapping = aes(x = Fare_group,
+                                  y = ..count..)) + geom_bar(aes(fill = Survived), position = "dodge")
+```
+
+```{r}
+#Death rate by Fare group
+table_Fare = table(df3$Survived, df3$Fare_group)
+Death_rate_Fare = c(0,0,0,0,0)
+for (i in 1:5){
+  Death_rate_Fare[i] = table_Fare[1,i]/ (table_Fare[1,i] + table_Fare[2,i])
+}
+
+table3 = as.matrix(Death_rate_Fare)
+colnames(table3)[1] = "Death Rate"
+rownames(table3) = c("Very Low", "Low", "Normal", "High", "Very High")
+
+table3
+```
+
+
+- Here we can find that lower fare equals higher death rate.
+
+```{r}
+plot(data$Survived,
+     xlab = "Survived",
+     ylab = "Count")
+```
+
+
+
+**Data Processing**
+
+1. Leave variables that I will use
+ - PassengerId, Name, Ticket and Cabin will not be used as they are unique values.
+
+```{r}
+data2 = data[ , c("Survived", "Pclass", "Sex", "Age", "SibSp", "Parch",
+                  "Fare", "Embarked")]
+
+data2
+```
+
+2. NA Values
+  1) Embarked
+```{r}
+data2[data2$Embarked == "", ]
+```
+  
+There is only 2 missing values so we might just delete these observations.
+```{r}
+data2 = data2[!data2$Embarked == "", ]
+```
+
+  2) Age
+
+- As there are NA values in test data set too, I will just categorize NA value as "Unknown".
+
+```{r}
+data2$Age_group[data2$Age < 13] = "Child"
+data2$Age_group[data2$Age >= 60] = "Senior"
+data2$Age_group[(data2$Age >= 13) & (data2$Age < 19)] = "Adolescence"
+data2$Age_group[(data2$Age >= 19) & (data2$Age < 40)] = "Young Adult"
+data2$Age_group[(data2$Age >= 40) & (data2$Age <= 59)] = "Adult"
+data2$Age_group[is.na(data2$Age)] = "Unknown"
+```
+
+```{r}
+data3 = data2
+```
+
+
+  3)Fare
+  
+- Categorize Fare into groups.
+
+```{r}
+data3$Fare_group[data3$Fare < Q1] = "Very Low"
+data3$Fare_group[(data3$Fare >= Q1) & (data3$Fare < Q2)] = "Low"
+data3$Fare_group[(data3$Fare >= Q2) & (data3$Fare < Q3)] = "Normal"
+data3$Fare_group[(data3$Fare >= Q3) & (data3$Fare <= 100)] = "High"
+data3$Fare_group[data3$Fare > 100] = "Very High"
+
+data3$Fare_group = factor(data3$Fare_group, levels = c("Very Low", "Low", "Normal",
+                                                   "High", "Very High"))
+
+```
+
+
+  4) SibSp, Parch
+- Process both variables into dummy variable (0, 1)
+- Underage traveling with their grand parents have 0 in Parch. This case, change it into 1.
+
+```{r}
+#Parch
+data3$Parch2[data3$Parch != 0] = 1
+data3$Parch2[data3$Parch == 0] = 0
+data3$Parch2[(data3$Parch2 == 0) & (data3$Age < 19)] = 1
+```
+
+```{r}
+#SibSp
+data3$SibSp2[data3$SibSp == 0] = 0
+data3$SibSp2[data3$SibSp != 0] = 1
+```
+
+```{r}
+#Leave columns for modeling
+data4 = data3 %>%
+  select(!c(Age, SibSp, Parch, Fare))
+```
+
+   - Check if we can combine SibSp and Parch (making them into companion Yes / No)
+   
+```{r}
+ggplot(data = data4, mapping = aes(x = SibSp2,
+                                  y = ..count..)) + geom_bar(aes(fill = Survived), position = "dodge")
+```
+   
+```{r}
+ggplot(data = data4, mapping = aes(x = Parch2,
+                                  y = ..count..)) + geom_bar(aes(fill = Survived), position = "dodge")
+```
+
+
+```{r}
+data_SibPar = data4[ , c("Survived", "SibSp2", "Parch2")]
+data_SibPar$Comb[(data_SibPar$SibSp2 == 0) & (data_SibPar$Parch2 == 0)] = 0
+data_SibPar$Comb[is.na(data_SibPar$Comb)] = 1
+
+ggplot(data = data_SibPar, mapping = aes(x = Comb,
+                                  y = ..count..)) + geom_bar(aes(fill = Survived), position = "dodge")
+```
+- No better result.
+
+**Modeling**
+- Random Forest
+```{r, warning = F, message=F}
+library(caret)
+#10 fold-Cross validation
+data.trn = data4
+
+control2 = trainControl(method = "repeatedcv",
+                        number = 10,
+                        repeats = 3)
+```
+
+```{r}
+nodesize = c(5:10)
+mtry = c(3:5)
+split = "gini"
+
+tunegrid = expand.grid(min.node.size = nodesize, mtry = mtry, splitrule = split)
+
+fit.cv = train(Survived ~ ., data = data.trn, method = "ranger",
+               trControl = control2,
+               tuneGrid = tunegrid)
+
+
+fit.cv
+```
+
+
+```{r}
+#Test prediction
+test = read.csv("test.csv")
+```
+
+
+- Data processing on Test data
+```{r}
+data.tst = test
+```
+
+```{r}
+data.tst = data.tst %>%
+  select(Pclass, Sex, Age, SibSp, Parch, Fare, Embarked)
+```
+
+```{r}
+str(data.tst)
+```
+
+```{r}
+data.tst$Pclass = as.factor(data.tst$Pclass)
+```
+
+
+```{r}
+#Na values
+colSums(is.na(data.tst))
+```
+
+```{r}
+data.tst$Fare[is.na(data.tst$Fare)] = mean(data.tst$Fare, na.rm = T)
+```
+
+
+```{r}
+data.tst$Age_group[data.tst$Age < 13] = "Child"
+data.tst$Age_group[data.tst$Age >= 60] = "Senior"
+data.tst$Age_group[(data.tst$Age >= 13) & (data.tst$Age < 19)] = "Adolescence"
+data.tst$Age_group[(data.tst$Age >= 19) & (data.tst$Age < 40)] = "Young Adult"
+data.tst$Age_group[(data.tst$Age >= 40) & (data.tst$Age <= 59)] = "Adult"
+data.tst$Age_group[is.na(data.tst$Age)] = "Unknown"
+```
+
+```{r}
+data.tst$Fare_group[data.tst$Fare < Q1] = "Very Low"
+data.tst$Fare_group[(data.tst$Fare >= Q1) & (data.tst$Fare < Q2)] = "Low"
+data.tst$Fare_group[(data.tst$Fare >= Q2) & (data.tst$Fare < Q3)] = "Normal"
+data.tst$Fare_group[(data.tst$Fare >= Q3) & (data.tst$Fare <= 100)] = "High"
+data.tst$Fare_group[data.tst$Fare > 100] = "Very High"
+
+data.tst$Fare_group = factor(data.tst$Fare_group, levels = c("Very Low", "Low", "Normal",
+                                                   "High", "Very High"))
+
+```
+
+
+
+```{r}
+#Parch
+data.tst$Parch2[data.tst$Parch != 0] = 1
+data.tst$Parch2[data.tst$Parch == 0] = 0
+data.tst$Parch2[(data.tst$Parch2 == 0) & (data.tst$Age < 19)] = 1
+```
+
+```{r}
+#SibSp
+data.tst$SibSp2[data.tst$SibSp == 0] = 0
+data.tst$SibSp2[data.tst$SibSp != 0] = 1
+```
+
+```{r}
+data.tst  = data.tst %>%
+  select(!c(Age, Fare))
+```
+
+```{r}
+test.pred = predict(fit.cv, newdata = data.tst)
+```
+
+```{r}
+test$Survived = test.pred
+test.final = test %>%
+  select(PassengerId, Survived)
+```
+
+```{r}
+write.csv(test.final, "C:\\Users\\HP\\Desktop\\학교자료\\데이터프로젝트\\Kaggle - Titanic\\submission4.csv", row.names = F)
+```

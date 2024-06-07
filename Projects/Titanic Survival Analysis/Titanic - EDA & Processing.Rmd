@@ -1,0 +1,415 @@
+---
+title: "Kaggle - Titanic"
+author: "Seunggyun Shin"
+date: '2022 3 14 '
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Packages
+```{r, warning=F, message = F}
+library(ggplot2)
+library(tidyverse)
+library(sqldf)
+```
+
+
+**Intro**
+- Predict survival in titanic.
+
+**Data**
+- Variable
+  - survival : survival (0 = No, 1 = Yes)
+  - pclass : Ticket class (1 = 1st, 2 = 2nd, 3 = 3rd)
+  - sex : gender
+  - Age
+  - sibsp : number of siblings / spouses on Titanic
+  - Parch : number of parents / children on Titanic (Some children travelled only with a nanny, therefore parch=0 for them)
+  - ticket : Ticket number
+  - fare : the revenue earned from carrying a passenger in regularly scheduled service
+  - cabin : Cabin number
+  - embarked : Port of Embarkation (C = Cherbourg, Q = Queenstown, S = Southampton)
+
+**EDA**
+
+```{r}
+data = read.csv("train.csv")
+```
+
+```{r}
+str(data)
+```
+
+Fix variables into appropriate data type for Exploratory Data Analysis.
+```{r}
+data$PassengerId = as.factor(data$PassengerId)
+data$Survived = as.factor(data$Survived)
+data$Pclass = as.factor(data$Pclass)
+```
+
+```{r}
+str(data)
+```
+
+
+Search which variables have missing values.
+```{r}
+colSums(is.na(data))
+```
+
+
+*Pclass vs Survived*
+
+```{r}
+ggplot(data, aes(Pclass, ..count..)) + geom_bar(aes(fill = Survived),
+                                                position = "dodge")
+```
+
+```{r}
+#Death rate by the ticket class
+Death_rate_table_Pclass = table(data$Survived, data$Pclass)
+Death_rate_Pclass = c(0,0,0)
+for (i in 1:3){
+  Death_rate_Pclass[i] = Death_rate_table_Pclass[1,i] / (Death_rate_table_Pclass[1,i] + Death_rate_table_Pclass[2,i])
+}
+table1 = as.matrix(Death_rate_Pclass)
+colnames(table1)[1] = "Death Rate"
+rownames(table1) = c("1st", "2nd", "3rd")
+
+table1
+```
+
+- People with lower ticket class had higher death rate.
+
+
+
+*Sex vs Survived*
+```{r}
+ggplot(data, aes(Sex, ..count..)) + geom_bar(aes(fill = Survived),
+                                             position = "dodge")
+```
+
+```{r}
+#Death rate by Gender
+table_sex = table(data$Survived, data$Sex)
+Death_rate_sex = c(0,0)
+for (i in 1:2){
+  Death_rate_sex[i] = table_sex[1,i]/ (table_sex[1,i] + table_sex[2,i])
+}
+
+table2 = as.matrix(Death_rate_sex)
+colnames(table2)[1] = "Death Rate"
+rownames(table2) = c("Female", "Male")
+
+table2
+```
+
+- In fact, men had much higher death rate which tells that gender is highly related with survival in titanic.
+
+
+*Age vs Survived*
+Variable Age has missing values, so lets just plot them without observations with missing values at this point.
+```{r}
+df1 = data[ ,c("Survived", "Age")]
+df1 = na.omit(df1)
+df1$Age = as.integer(df1$Age)
+```
+
+```{r}
+df1_count = df1 %>%
+  group_by(Age, Survived) %>%
+  summarise(n = n())
+
+ggplot(df1_count, aes(x = Age, y = n, group = Survived)) +
+  geom_line(aes(color = Survived))
+```
+
+
+Well... since there are too many "Ages" so that it is hard to understand the visualization. So, lets try to categorize the Ages depending on the definition of Age group classification.
+
+- 0 ~ 12 : Child
+- 13 ~ 18 : Adolescence
+- 19 ~ 59 : Adult
+- 60 ~ : Senior
+
+I will say 19 ~ 39 : Young Adult as the range of Adult is much larger than the other group.
+```{r}
+df2 = df1
+
+df2$Age_group[df2$Age < 13] = "Child"
+df2$Age_group[df2$Age >= 60] = "Senior"
+df2$Age_group[(df2$Age >= 13) & (df2$Age < 19)] = "Adolescence"
+df2$Age_group[(df2$Age >= 19) & (df2$Age < 40)] = "Young Adult"
+df2$Age_group[(df2$Age >= 40) & (df2$Age <= 59)] = "Adult"
+```
+
+```{r}
+df2_count = df2 %>%
+  group_by(Age_group, Survived) %>%
+  summarise(n = n())
+
+
+df2_count$Age_group =  factor(df2_count$Age_group, levels = 
+                                c("Child", "Adolescence", "Young Adult", "Adult", "Senior"))
+```
+
+```{r}
+ggplot(df2_count, aes(x = Age_group, y = n, group = Survived)) +
+  geom_line(aes(color = Survived))
+```
+
+- Depending on the graph only people in the "child" age group had higher survival rate than their death rate. Age does not seem that significant at this point besides people in Young_adult age group had comparatively high death rate.
+
+
+
+*Survived vs Sibsp*
+```{r}
+ggplot(data = data, mapping = aes(x = SibSp,
+                                  y = ..count..)) + geom_bar(aes(fill = Survived), position = "dodge")
+```
+
+- People with 0 sibling and spouse tended to have high death rate on the titanic.
+
+
+*Survived vs Parch*
+
+```{r}
+ggplot(data = data, mapping = aes(x = Parch,
+                                  y = ..count..)) + geom_bar(aes(fill = Survived), position = "dodge")
+```
+- Just like SibSp, people with 0 families on the titanic tended to have high death rate.
+
+*Survival vs Embarked*
+```{r}
+par(mfrow = c(2,2))
+ggplot(data = data, mapping = aes(x = Embarked,
+                                  y = ..count..)) + geom_bar(aes(fill = Survived), position = "dodge")
+```
+
+- Here I found there is missing values in Embarked.
+- People abroad from Southampton had much higher death rate.
+- Makes no sense for me that place one abroad has effect on the survival rate. So, I better check relationship with other prediction variable.
+
+
+*Cabin*
+
+```{r}
+nrow(data[data$Cabin == "", ])
+```
+- Total 687 observations have missing value in Cabin. The variable Cabin is impossible to fill the missing value so I might just get rid of the data frame.
+
+
+
+*Survived vs Fare*
+```{r}
+#Fare means revenue earned by the certain passenger
+#Better use histogram for visualization
+summary(data$Fare)
+```
+
+```{r}
+boxplot(data$Fare,
+        col = "skyblue")
+```
+
+```{r}
+df3 = data[ , c("Survived", "Fare")]
+
+#Depending on the summary divide the data into 4 part
+Q1 = summary(df3$Fare)[2]
+Q2 = summary(df3$Fare)[3]
+Q3 = summary(df3$Fare)[4]
+```
+
+Due to extremely large values, lets just use bar graph by categorizing the data.
+```{r}
+df3$Fare_group[df3$Fare < Q1] = "Very Low"
+df3$Fare_group[(df3$Fare >= Q1) & (df3$Fare < Q2)] = "Low"
+df3$Fare_group[(df3$Fare >= Q2) & (df3$Fare < Q3)] = "Normal"
+df3$Fare_group[(df3$Fare >= Q3) & (df3$Fare <= 100)] = "High"
+df3$Fare_group[df3$Fare > 100] = "Very High"
+
+df3$Fare_group = factor(df3$Fare_group, levels = c("Very Low", "Low", "Normal",
+                                                   "High", "Very High"))
+
+ggplot(data = df3, mapping = aes(x = Fare_group,
+                                  y = ..count..)) + geom_bar(aes(fill = Survived), position = "dodge")
+```
+
+```{r}
+#Death rate by Fare group
+table_Fare = table(df3$Survived, df3$Fare_group)
+Death_rate_Fare = c(0,0,0,0,0)
+for (i in 1:5){
+  Death_rate_Fare[i] = table_Fare[1,i]/ (table_Fare[1,i] + table_Fare[2,i])
+}
+
+table3 = as.matrix(Death_rate_Fare)
+colnames(table3)[1] = "Death Rate"
+rownames(table3) = c("Very Low", "Low", "Normal", "High", "Very High")
+
+table3
+```
+
+
+- Here we can find that lower fare equals higher death rate.
+
+
+**Data Processing**
+
+1. Leave variables that I will use
+ - PassengerId, Name, Ticket and Cabin will not be used as they are unique values.
+
+```{r}
+data2 = data[ , c("Survived", "Pclass", "Sex", "Age", "SibSp", "Parch",
+                  "Fare", "Embarked")]
+
+data2
+```
+
+2. NA Values
+  1) Embarked
+```{r}
+data2[data2$Embarked == "", ]
+```
+  
+There is only 2 missing values so we might just delete these observations.
+```{r}
+data2 = data2[!data2$Embarked == "", ]
+```
+
+  2) Age
+
+- To fill in missing values in NA, first find some features to fill in age with group mean.
+
+- Think about "What feature might be useful to fill in Age".
+  - Pclass & Fare : Passenger class and Fare can be effective as wealth can be related to the age. However, children abroad with parents will not be useful in this case.
+  - SibSp & Parch : These can be considerable if we find people with same last name. However, text mining be needed (Try later in another try).
+    => Does not seem meaningful (People with same last name = both NA)
+
+  
+```{r}
+df4 = na.omit(data2)
+dim(df4)
+colnames(df4)
+```
+**Age vs Pclass**
+```{r}
+#Mean age by Pclas
+aggregate(df4$Age, list(df4$Pclass), FUN = mean)
+```
+
+- Higher passenger class, higher average age (Useable)
+**Age vs Fare**
+```{r}
+#both numeric
+plot(df4$Age, df4$Fare,
+     xlab = "Age",
+     ylab = "Fare")
+```
+- Does not seem meaningful at all.
+
+
+**Age vs Sex**
+```{r}
+aggregate(df4$Age, list(df4$Sex), FUN = mean)
+```
+
+```{r}
+Age_sex = lm(Age ~ Sex, data = df4)
+anova(Age_sex)
+```
+
+- There is significant difference between means of two gender group.
+
+**Parch & SibSp**
+- We might change both variables into dummy variables.
+- Children traveling with their grandparents have 0 value in Parch. So, I might consider as 1 if the age is low and Parch = 0.
+
+```{r}
+#Parch
+df_AP = df4
+df_AP$Parch2 = df_AP$Parch
+df_AP$Parch2[df_AP$Parch2 != 0] = 1
+df_AP$Parch2[(df_AP$Age < 19) & (df_AP$Parch == 0)] = 1
+
+
+aggregate(df_AP$Age, list(df_AP$Parch2), FUN = mean)
+```
+
+- Could find huge difference here. (Useable)
+
+```{r}
+#Sibsp
+df_AS = df4
+df_AS$SibSp2[df_AS$SibSp != 0] = 1
+df_AS$SibSp2[df_AS$SibSp == 0] = 0
+
+aggregate(df_AS$Age, list(df_AS$SibSp2), FUN = mean)
+
+Age_Sibsp = lm(Age ~ SibSp2, data = df_AS)
+anova(Age_Sibsp)
+```
+- Could find huge significant difference here.
+
+
+```{r}
+aggregate(df4$Age, list(df4$Embarked), FUN = mean)
+```
+
+- Cannot find meaningful diffenece in Embarked.
+
+*In conclusion I will replace missing values in Age using group means grouped by Sex, Pclass, Parch and Sibsp*
+
+3. SibSp & Parch
+- Change in to 0 & 1 dummy variable.
+- Age < 19 & Parch = 0 => Parch = 1 (We can do it before replacing Age because Average age in any grouping is mostly over 20)
+
+```{r}
+#Parch
+data2$Parch2 = data2$Parch
+data2$Parch2[data2$Parch2 != 0] = 1
+data2$Parch2[(data2$Age < 19) & (is.na(data2$Age) == F) & (data2$Parch == 0)] = 1
+```
+
+```{r}
+#SibSp
+data2$SibSp2[data2$SibSp != 0] = 1
+data2$SibSp2[data2$SibSp == 0] = 0
+```
+
+```{r}
+data2 = data2 %>%
+  select(!c("Parch", "SibSp"))
+```
+
+4. Now replace NA in Age by group means.
+```{r}
+data2_1 = data2
+data2_1 = data2_1 %>% group_by(Pclass, Sex, Parch2, SibSp2) %>%
+  mutate(abc = ifelse(is.na(Age), mean(Age, na.rm = T), Age))
+
+
+data2$Age = data2_1$abc
+data2$Age = round(data2$Age, 0)
+```
+
+- Now need to decide how I will use the variable age and fare (Categorizing or numeric).
+
+5. Check multicollinearity.
+```{r}
+data2$Embarked = factor(data2$Embarked, levels = c("S", "C", "Q"))
+str(data2)
+```
+
+```{r,message=F}
+mod = glm(Survived ~ ., data = data2, family = "binomial")
+library(rms)
+vif(mod)
+```
+
+
+- According to VIF, there is no significant problem with multicollinearity.
