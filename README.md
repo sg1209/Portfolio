@@ -12,10 +12,9 @@ Reflecting on my high school years, the movie 'Moneyball' triggered my fascinati
 
 **Course Works: Professional Statistics, Statistical Data Management, Python in Data Science Program, Basics of Statistical Learning, Baseball Analytics, Applied Linear Algebra, Applied Regression and Design, Statistics Programming Methods, Methods of Applied Statistics, Statistics and Probability, Statistical Analysis, Calculus I,II & III, Social Aspects of Info Tech**
 
-/n
-/n
-/n
-
+&emsp;
+&emsp;
+&emsp;
 
 **Professional Skills:
 Data Analytics | Statistical Analytics | Machine Learning | Data Visualization | Data Manipulation | Database Management | Predictive Analysis | Business Intelligence | Natural Language Processing | Quantitative Analysis | 
