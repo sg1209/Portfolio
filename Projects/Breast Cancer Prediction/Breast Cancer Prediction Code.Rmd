@@ -1,0 +1,657 @@
+---
+title: "Breast Cancer Prediction"
+author: "Seunggyun Shin"
+date: '2021 12 8 '
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+TITLE PAGE
+
+
+
+
+
+
+
+
+
+\newpage
+Project description and summary
+
+\newpage
+Literature review
+
+\newpage
+Summary Statistics and data processing
+
+
+```{r, message = F, results='hide', echo=FALSE}
+# load data
+data = read.csv("brca_data_w_subtypes.csv")
+```
+
+```{r}
+dim(data)
+```
+- The Original data set has 507 rows and 1940 columns. The number of columns is way too large for statistical analysis. So, for better analysis, we have proceeded data pre-processing by following order.
+
+```{r, message = F, warning= F}
+# discard the vital.status variable
+library(tidyverse)
+data = data %>%
+  select(!"vital.status")
+```
+
+```{r}
+# PR.Status, ER.Status, and HER2.Final.Status = only consider two levels: “Positive” and “Negative”
+data = data %>%
+  filter(PR.Status == "Positive" | PR.Status == "Negative") %>%
+  filter(ER.Status == "Positive" | ER.Status == "Negative") %>%
+  filter(HER2.Final.Status == "Positive" | HER2.Final.Status == "Negative")
+
+
+# For histological.type, we will only consider “infiltrating lobular carcinoma” and “infiltrating ductal carcinoma”
+data = data %>%
+  filter(histological.type == "infiltrating ductal carcinoma" |
+           histological.type == "infiltrating lobular carcinoma")
+
+
+
+#Relevel
+data$PR.Status = factor(data$PR.Status, levels = c("Positive", "Negative"))
+data$ER.Status = factor(data$ER.Status, levels = c("Positive", "Negative"))
+data$HER2.Final.Status = factor(data$HER2.Final.Status, levels = c("Positive", "Negative"))
+
+
+#infiltrating ductal carcinoma = IDC
+#infiltrating lobular carcinoma = ILC
+data$histological.type = factor(data$histological.type, levels = c("IDC", "ILC", "infiltrating ductal carcinoma", "infiltrating lobular carcinoma"))
+data$histological.type[data$histological.type == "infiltrating ductal carcinoma"] = "IDC"
+data$histological.type[data$histological.type == "infiltrating lobular carcinoma"] = "ILC"
+data$histological.type = factor(data$histological.type, levels = c("IDC", "ILC"))
+
+
+#Our goal is to predict these four
+colnames(data)[1937:1940]
+```
+
+
+```{r}
+#Seperate data by their figure
+indx_rs = grepl("rs_", colnames(data))
+indx_cn = grepl("cn_", colnames(data))
+indx_mu = grepl("mu_", colnames(data))
+indx_pp = grepl("pp_", colnames(data))
+
+data_rs = data[indx_rs]
+data_cn = data[indx_cn]
+data_mu = data[indx_mu]
+data_pp = data[indx_pp]
+```
+
+```{r}
+#for continuous figure find outliers(rs, pp)
+outlier_detect = function(x){
+  Q1 = quantile(x, probs = 0.25)
+  Q3 = quantile(x, probs = 0.75)
+  iqr = Q3 - Q1
+  
+  upper_limit = Q3 + (iqr*1.5)
+  lower_limit = Q1 - (iqr*1.5)
+  
+  x > upper_limit | x < lower_limit
+}
+
+n_out_rs = rep(NA, ncol(data_rs))
+for (i in 1:ncol(data_rs)){
+  n_out_rs[i] = sum(outlier_detect(data_rs[,i]))
+}
+
+
+n_out_pp = rep(NA, ncol(data_pp))
+for (i in 1:ncol(data_pp)){
+  n_out_pp[i] = sum(outlier_detect(data_pp[,i]))
+}
+```
+
+
+```{r}
+sum(n_out_rs)
+sum(n_out_pp)
+```
+
+```{r}
+# There are too many outliers just to delete all the rows with outliers. So just delete the columns with outliers (more than 1) as variables with many outliers can have negative effect on the analysis.
+data_rs = data_rs[(n_out_rs < 1)]
+data_pp = data_pp[(n_out_pp < 1)]
+```
+
+
+```{r}
+#Compare variance
+#If feature does not change a lot depending on the response variable, it can be insignificant in prediction. So, we can get rid of them.
+
+#I would tell variables with variance in bottom 25% to have low variances compare to other variables.
+Vars_pp = rep(NA, ncol(data_pp))
+for (i in 1:ncol(data_pp)){
+  Vars_pp[i] = var(data_pp[,i])
+}
+
+
+data_pp = data_pp[(Vars_pp > quantile(Vars_pp)[2])]
+
+Vars_rs = rep(NA, ncol(data_rs))
+for (i in 1:ncol(data_rs)){
+  Vars_rs[i] = var(data_rs[,i])
+}
+
+data_rs = data_rs[(Vars_rs > quantile(Vars_rs)[2])]
+
+
+# For better analysis, we should normalize(standardize) continuous variables.
+
+data_rs = data.frame(scale(data_rs))
+data_pp = data.frame(scale(data_pp))
+```
+
+```{r}
+#Check unbalance of categorical data
+
+#if one category accommodates 90% of the instances it should be considered as extremely unbalanced. The variable cannot be very informative, so we can remove it.
+unbal_mu = rep(NA, ncol(data_mu))
+for (i in 1:ncol(data_mu)){
+  if (max(round(table(data_mu[ ,i]) / nrow(data_mu), 2)) > 0.90){
+    unbal_mu[i] = FALSE
+  }
+  else{
+    unbal_mu[i] = TRUE
+  }
+}
+data_mu = data_mu[unbal_mu]
+```
+
+```{r}
+#For cn, variables have 5 classes (-2, -1, 0, 1, 2).
+#So, I would consider them to be unbalanced if one category accommodates over 50% which is larger than sum of rest of categories.
+
+unbal_cn = rep(NA, ncol(data_cn))
+for (i in 1:ncol(data_cn)){
+  if (max(round(table(data_cn[,i]) / nrow(data_cn), 2)) > 0.5){
+    unbal_cn[i] = FALSE
+  }
+  else{
+    unbal_cn[i] = TRUE
+  }
+}
+
+data_cn = data_cn[unbal_cn]
+```
+
+
+
+```{r}
+data2 = cbind(data_rs, data_cn, data_mu, data_pp, data[ ,1937:1940])
+
+dim(data2)
+# This is the data after pre-processing to get rid of variables with unbalanced structure or large outliers. + Normalizing continuous variables.
+```
+
+
+```{r}
+#Train, Test split(8:2)
+set.seed(1)
+split = sample(nrow(data2), nrow(data2) * 0.8, replace = F)
+train = data2[split ,]
+test = data2[-split ,]
+```
+
+
+```{r}
+#Univariate Analysis on response variables
+par(mfrow = c(2,2))
+pie(table(data2$PR.Status), labels = paste(names(table(data2$PR.Status)), "\n", table(data2$PR.Status), sep =""), main = "PR Status")
+
+pie(table(data2$ER.Status), labels = paste(names(table(data2$ER.Status)), "\n", table(data2$ER.Status), sep =""), main = "ER Status")
+
+pie(table(data2$HER2.Final.Status), labels = paste(names(table(data2$HER2.Final.Status)), "\n", table(data2$HER2.Final.Status), sep =""), main = "Final Status")
+
+
+pie(table(data2$histological.type), labels = paste(names(table(data2$histological.type)), "\n", table(data2$histological.type), sep =""), main = "Histological")
+```
+
+
+\newpage
+Modeling PR.Status
+
+```{r}
+train_PR = train[ , -c(565, 566, 567)]
+test_PR = test[ , -c(565, 566, 567)]
+```
+
+```{r, warning = F}
+#Using importance in RandomForest
+library(randomForest)
+forest_m = randomForest(PR.Status ~ ., data = train_PR)
+top50 = head(sort(forest_m$importance[ ,1], decreasing = T), 50)
+
+impor_val = names(top50)
+train_PR2 = train_PR[ ,c(impor_val, "PR.Status")]
+test_PR2 = test_PR[ ,c(impor_val, "PR.Status")]
+
+library(caret)
+#Accuracy without variable selection
+pred = predict(forest_m, test_PR)
+confusionMatrix(as.factor(pred), test_PR$PR.Status)
+```
+
+```{r,  warning=F}
+#Random Forest
+RF_model_PR = randomForest(PR.Status ~ ., data = train_PR2)
+train_pred1 = predict(RF_model_PR, train_PR2)
+test_pred1 = predict(RF_model_PR, test_PR2)
+
+
+confusionMatrix(as.factor(test_pred1), test_PR2$PR.Status)
+```
+```{r}
+#Logistic
+library(MASS)
+glm_model = glm(PR.Status ~ ., data = train_PR2, family = "binomial")
+
+pred_log = (predict(glm_model, newdata = train_PR2, type = "response") <= 0.5)
+
+pred_log[pred_log == T] = "Positive"
+pred_log[pred_log == F] = "Negative"
+
+#Train accuracy
+confusionMatrix(as.factor(pred_log), train_PR2$PR.Status)
+```
+```{r}
+#Test accuracy
+pred_log2 = (predict(glm_model, newdata = test_PR2, type = "response") <= 0.5)
+
+pred_log2[pred_log2 == T] = "Positive"
+pred_log2[pred_log2 == F] = "Negative"
+
+#Train accuracy
+confusionMatrix(as.factor(pred_log2), test_PR2$PR.Status)
+```
+
+
+\newpage
+Modeling histological.type
+
+```{r}
+#train_hist = train[ , -c(564, 565, 566)]
+#test_hist = test[ , -c(564, 565, 566)]
+
+train_hist = train_PR2[ , -ncol(train_PR2)]
+train_hist = cbind(train_hist, train[ ,"histological.type"])
+colnames(train_hist)[51] = "histological.type"
+
+
+test_hist = test_PR2[ , -ncol(test_PR2)]
+test_hist = cbind(test_hist, test[ ,"histological.type"])
+colnames(test_hist)[51] = "histological.type"
+```
+
+```{r}
+## KNN
+  # Find Best K value
+control <- trainControl(method = "cv", number = 10)
+knn.cvfit <- train(histological.type ~ . , data = train_hist,method = "knn", tuneGrid = data.frame(k = seq(1,20, 2)), trControl = control)
+```
+
+```{r}
+  # Plot K vs Accuracy
+  library(ggplot2)
+  ggplot(mapping = aes(x = knn.cvfit$results$k , y = knn.cvfit$results$Accuracy)) + geom_point(col = "orange") + labs(title = "K vs Accuracy",y = "Accuracy", x = "K" )
+```
+```{r}
+  # Best K 
+  best_k = knn.cvfit$results$k[which(knn.cvfit$results$Accuracy==max(knn.cvfit$results$Accuracy))]
+  best_k
+```
+
+```{r}
+  # Fit the best K using knn
+library(kknn)
+  knn.fit_best = kknn(train_hist$histological.type ~ ., train = train_hist[,-ncol(test_hist)], test = test_hist[,-ncol(test_hist)], 
+                        k = best_k[1], kernel = "rectangular")
+  test.pred_best = knn.fit_best$fitted.values
+  confusionMatrix(test.pred_best, test_hist$histological.type)
+```
+
+```{r}
+# Make ROC graph and calculate AUC
+library(pROC)
+test.pred_best_num = as.numeric(test.pred_best == "IDC")
+actual_num = as.numeric(test_hist$histological.type == "IDC")
+```
+
+```{r}
+roc = roc(actual_num, test.pred_best_num, auc=TRUE)
+plot.roc(roc, col= "red", lwd = 3, print.auc = TRUE)
+```
+```{r}
+# 그냥 확인해보려고 다른 라이브러리 한번 써봄
+library(ROCR)
+roc = prediction(actual_num, test.pred_best_num)
+```
+
+```{r}
+  perf <- performance(roc,"tpr","fpr")
+  plot(perf,colorize=TRUE)
+  performance(roc, measure = "auc")@y.values[[1]]
+```
+```{r}
+library(e1071)
+svm.fit <- svm(histological.type ~ ., data = train_hist, type='C-classification', 
+                   kernel='linear', scale=FALSE, cost = 10000)
+```
+
+```{r}
+svm_pred = predict(svm.fit, newdata = test_hist[,-length(test_hist)])
+
+confusionMatrix(svm_pred, test_hist$histological.type)
+```
+
+```{r}
+svm_pred_num = as.numeric(svm_pred == "IDC")
+```
+
+```{r}
+roc = roc(actual_num, svm_pred_num, auc=TRUE)
+plot.roc(roc, col= "red", lwd = 3, print.auc = TRUE)
+```
+
+
+\newpage
+Variable selection for all outcomes
+
+```{r}
+#We have selected final 50 variables based on 
+```
+
+
+```{r,results='hide', echo=FALSE, warning=FALSE, message=FALSE}
+#Perform 3-fold Cross Validation using Random Forest
+par(mfrow = c(4,3))
+# Random Forest CV
+for (i in 1:k) {
+  train_cv = data[data$cvId != i,]
+  test_cv = data[data$cvId == i,]
+  
+  #PR
+  train_cv_PR = train_cv[ ,- (c(ncol(test_cv)) - c(0,1,2,3))]
+  test_cv_PR = test_cv[ , - (c(ncol(test_cv)) - c(0,1,2,3))]
+  #ER
+  train_cv_ER = train_cv[ ,- (c(ncol(test_cv)) - c(0,1,2,4))]
+  test_cv_ER = test_cv[ , - (c(ncol(test_cv)) - c(0,1,2,4))]
+  # HER2.Final.Status
+  train_cv_HER = train_cv[ ,- (c(ncol(test_cv)) - c(0,1,3,4))]
+  test_cv_HER = test_cv[ , - (c(ncol(test_cv)) - c(0,1,3,4))]
+  # histological.type
+  train_cv_hist = train_cv[ ,- (c(ncol(test_cv)) - c(0,2,3,4))]
+  test_cv_hist = test_cv[ , - (c(ncol(test_cv)) - c(0,2,3,4))]
+  
+  #PR
+  RF.fit = randomForest(PR.Status ~ ., data = train_cv_PR)
+  RF_pred = predict(RF.fit, newdata = test_cv_PR[,-length(test_cv_PR)])
+  RF_pred_num = as.numeric(RF_pred == "Positive")
+  actual = as.numeric(test_cv_PR$PR.Status == "Positive") 
+  
+  roc_PR = roc(actual, RF_pred_num, auc=TRUE)
+  plot.roc(roc_PR, col= "red", lwd = 3, print.auc = TRUE, main = paste("Random Forest CV PR: ", i))
+  
+  #ER
+  RF.fit = randomForest(ER.Status ~ ., data = train_cv_ER)
+  RF_pred = predict(RF.fit, newdata = test_cv_ER[,-length(test_cv_ER)])
+  RF_pred_num = as.numeric(RF_pred == "Positive")
+  actual = as.numeric(test_cv_ER$ER.Status == "Positive") 
+  
+  roc_PR = roc(actual, RF_pred_num, auc=TRUE)
+  plot.roc(roc_PR, col= "red", lwd = 3, print.auc = TRUE, main = paste("Random Forest CV ER: ", i))
+  
+  #HER
+  RF.fit = randomForest(HER2.Final.Status ~ ., data = train_cv_HER)
+  RF_pred = predict(RF.fit, newdata = test_cv_HER[,-length(test_cv_HER)])
+  RF_pred_num = as.numeric(RF_pred == "Positive")
+  actual = as.numeric(test_cv_HER$HER2.Final.Status == "Positive") 
+  
+  roc_PR = roc(actual, RF_pred_num, auc=TRUE)
+  plot.roc(roc_PR, col= "red", lwd = 3, print.auc = TRUE, main = paste("Random Forest CV HER: ", i))
+  
+  # histological.type
+  RF.fit = randomForest(histological.type ~ ., data = train_cv_hist)
+  RF_pred = predict(RF.fit, newdata = test_cv_hist[,-length(test_cv_hist)])
+  RF_pred_num = as.numeric(RF_pred == "IDC")
+  actual = as.numeric(test_cv_hist$histological.type == "IDC") 
+  
+  roc_PR = roc(actual, RF_pred_num, auc=TRUE)
+#  plot.roc(roc_PR, col= "red", lwd = 3, print.auc = TRUE, main = paste("Random Forest CV Hist: ", i))
+}
+```
+
+
+
+```{r, results='hide', echo=FALSE, warning=FALSE, message=FALSE}
+#Perform 3-fold Cross Validation using Logistic Regression
+par(mfrow = c(4,3))
+# Logistic CV
+for (i in 1:k) {
+  train_cv = data[data$cvId != i,]
+  test_cv = data[data$cvId == i,]
+  
+  #PR
+  train_cv_PR = train_cv[ ,- (c(ncol(test_cv)) - c(0,1,2,3))]
+  test_cv_PR = test_cv[ , - (c(ncol(test_cv)) - c(0,1,2,3))]
+  #ER
+  train_cv_ER = train_cv[ ,- (c(ncol(test_cv)) - c(0,1,2,4))]
+  test_cv_ER = test_cv[ , - (c(ncol(test_cv)) - c(0,1,2,4))]
+  # HER2.Final.Status
+  train_cv_HER = train_cv[ ,- (c(ncol(test_cv)) - c(0,1,3,4))]
+  test_cv_HER = test_cv[ , - (c(ncol(test_cv)) - c(0,1,3,4))]
+  # histological.type
+  train_cv_hist = train_cv[ ,- (c(ncol(test_cv)) - c(0,2,3,4))]
+  test_cv_hist = test_cv[ , - (c(ncol(test_cv)) - c(0,2,3,4))]
+  
+  #PR
+  glm_fit = glm(PR.Status ~ . , data = train_cv_PR, family = "binomial")
+  logistic_pred = (predict(glm_fit, newdata = test_cv_PR[,-length(test_cv_PR)], type = "response") <= 0.5)
+  logistic_pred_num = as.numeric(logistic_pred == TRUE)
+  actual = as.numeric(test_cv_PR$PR.Status == "Positive") 
+  
+  roc = roc(actual, logistic_pred_num, auc=TRUE)
+  plot.roc(roc, col= "red", lwd = 3, print.auc = TRUE, main = paste("Logistic CV PR: ", i))
+
+  #ER
+  glm_fit = glm(ER.Status ~ . , data = train_cv_ER, family = "binomial")
+  logistic_pred = (predict(glm_fit, newdata = test_cv_ER[,-length(test_cv_ER)], type = "response") <= 0.5)
+  logistic_pred_num = as.numeric(logistic_pred == TRUE)
+  actual = as.numeric(test_cv_ER$ER.Status == "Positive") 
+  
+  roc = roc(actual, logistic_pred_num, auc=TRUE)
+  plot.roc(roc, col= "red", lwd = 3, print.auc = TRUE, main = paste("Logistic CV ER: ", i))
+  
+  #HER
+  glm_fit = glm(HER2.Final.Status ~ . , data = train_cv_HER, family = "binomial")
+  logistic_pred = (predict(glm_fit, newdata = test_cv_HER[,-length(test_cv_HER)], type = "response") <= 0.5)
+  logistic_pred_num = as.numeric(logistic_pred == TRUE)
+  actual = as.numeric(test_cv_HER$HER2.Final.Status == "Positive") 
+  
+  roc = roc(actual, logistic_pred_num, auc=TRUE)
+  plot.roc(roc, col= "red", lwd = 3, print.auc = TRUE, main = paste("Logistic CV HER: ", i))
+  
+  #Hist
+  glm_fit = glm(histological.type ~ . , data = train_cv_hist, family = "binomial")
+  logistic_pred = (predict(glm_fit, newdata = test_cv_hist[,-length(test_cv_hist)], type = "response") <= 0.5)
+  logistic_pred_num = as.numeric(logistic_pred == TRUE)
+  actual = as.numeric(test_cv_hist$histological.type == "IDC") 
+  
+  roc = roc(actual, logistic_pred_num, auc=TRUE)
+#  plot.roc(roc, col= "red", lwd = 3, print.auc = TRUE, main = paste("Logistic CV Hist: ", i))
+}
+```
+
+
+```{r, results='hide', echo=FALSE, warning=FALSE, message=FALSE}
+#Perform 3-fold Cross Validation using SVM
+par(mfrow = c(4,3))
+for (i in 1:k) {
+  train_cv = data[data$cvId != i,]
+  test_cv = data[data$cvId == i,]
+  
+  
+  #PR
+  train_cv_PR = train_cv[ ,- (c(ncol(test_cv)) - c(0,1,2,3))]
+  test_cv_PR = test_cv[ , - (c(ncol(test_cv)) - c(0,1,2,3))]
+  
+  svm.fit <- svm(PR.Status ~ . , data = train_cv_PR, type='C-classification', 
+                   kernel='linear', scale=FALSE, cost = 10000)
+  
+  svm_pred = predict(svm.fit, newdata = test_cv_PR[,-length(test_cv_PR)])
+  
+  svm_pred_num = as.numeric(svm_pred == "Positive")
+  
+  actual = as.numeric(test_cv_PR$PR.Status == "Positive") 
+  
+  roc_PR = roc(actual, svm_pred_num, auc=TRUE)
+  
+  plot.roc(roc_PR, col= "red", lwd = 3, print.auc = TRUE, main = paste("SVM CV PR: ", i))
+  
+  #ER
+  train_cv_ER = train_cv[ ,- (c(ncol(test_cv)) - c(0,1,2,4))]
+  test_cv_ER = test_cv[ , - (c(ncol(test_cv)) - c(0,1,2,4))]
+  
+  svm.fit <- svm(ER.Status ~ . , data = train_cv_ER, type='C-classification', 
+                   kernel='linear', scale=FALSE, cost = 10000)
+  
+  svm_pred = predict(svm.fit, newdata = test_cv_ER[,-length(test_cv_ER)])
+  
+  svm_pred_num = as.numeric(svm_pred == "Positive")
+  
+  actual = as.numeric(test_cv_ER$ER.Status == "Positive") 
+  
+  roc_ER = roc(actual, svm_pred_num, auc=TRUE)
+  
+  plot.roc(roc_ER, col= "red", lwd = 3, print.auc = TRUE, main = paste("SVM CV ER: ", i))
+  
+  # HER2.Final.Status
+  train_cv_HER = train_cv[ ,- (c(ncol(test_cv)) - c(0,1,3,4))]
+  test_cv_HER = test_cv[ , - (c(ncol(test_cv)) - c(0,1,3,4))]
+  
+  svm.fit <- svm(HER2.Final.Status ~ . , data = train_cv_HER, type='C-classification', 
+                   kernel='linear', scale=FALSE, cost = 10000)
+  
+  svm_pred = predict(svm.fit, newdata = test_cv_HER[,-length(test_cv_HER)])
+  
+  svm_pred_num = as.numeric(svm_pred == "Positive")
+  
+  actual = as.numeric(test_cv_HER$HER2.Final.Status == "Positive") 
+  
+  roc_ER = roc(actual, svm_pred_num, auc=TRUE)
+  
+  plot.roc(roc_ER, col= "red", lwd = 3, print.auc = TRUE, main = paste("SVM CV HER: ", i))
+  
+  # histological.type
+  train_cv_hist = train_cv[ ,- (c(ncol(test_cv)) - c(0,2,3,4))]
+  test_cv_hist = test_cv[ , - (c(ncol(test_cv)) - c(0,2,3,4))]
+  
+  svm.fit <- svm(histological.type ~ . , data = train_cv_hist, type='C-classification', 
+                   kernel='linear', scale=FALSE, cost = 10000)
+  
+  svm_pred = predict(svm.fit, newdata = test_cv_hist[,-length(test_cv_hist)])
+  
+  svm_pred_num = as.numeric(svm_pred == "IDC")
+  
+  actual = as.numeric(test_cv_hist$histological.type == "IDC") 
+  
+  roc_hist = roc(actual, svm_pred_num, auc=TRUE)
+  
+ # plot.roc(roc_hist, col= "red", lwd = 3, print.auc = TRUE, main = paste("SVM CV Hist: ", i))
+}
+```
+
+
+```{r,results='hide', echo=FALSE, warning=FALSE, message=FALSE}
+#Perform 3-fold Cross Validation using KNN
+k = 3
+
+set.seed(2)
+
+par(mfrow = c(4,3))
+
+for (i in 1:k) {
+  train_cv = data[data$cvId != i,]
+  test_cv = data[data$cvId == i,]
+  
+  #PR
+  train_cv_PR = train_cv[ ,- (c(ncol(test_cv)) - c(0,1,2,3))]
+  test_cv_PR = test_cv[ , - (c(ncol(test_cv)) - c(0,1,2,3))]
+  #ER
+  train_cv_ER = train_cv[ ,- (c(ncol(test_cv)) - c(0,1,2,4))]
+  test_cv_ER = test_cv[ , - (c(ncol(test_cv)) - c(0,1,2,4))]
+  # HER2.Final.Status
+  train_cv_HER = train_cv[ ,- (c(ncol(test_cv)) - c(0,1,3,4))]
+  test_cv_HER = test_cv[ , - (c(ncol(test_cv)) - c(0,1,3,4))]
+  # histological.type
+  train_cv_hist = train_cv[ ,- (c(ncol(test_cv)) - c(0,2,3,4))]
+  test_cv_hist = test_cv[ , - (c(ncol(test_cv)) - c(0,2,3,4))]
+  
+  knn.fit = kknn(train_cv_PR$PR.Status ~ ., train = train_cv_PR[,-ncol(train_cv_PR)], test = test_cv[,-ncol(test_cv_PR)], 
+                        k = best_k[1], kernel = "rectangular")
+  
+  knn_pred = predict(knn.fit, newdata = test_cv_PR[,-length(test_cv_PR) ])
+  
+  knn_pred_num = as.numeric(knn_pred == "Positive")
+  
+  actual = as.numeric(test_cv_PR$PR.Status == "Positive")
+  
+  roc = roc(actual, knn_pred_num, auc=TRUE)
+  plot.roc(roc, col= "red", lwd = 3, print.auc = TRUE, main = paste("KNN CV PR: ", i))
+  
+  knn.fit = kknn(train_cv_ER$ER.Status ~ ., train = train_cv_ER[,-ncol(train_cv_ER)], test = test_cv_ER[,-ncol(test_cv_ER)], 
+                        k = best_k[1], kernel = "rectangular")
+  
+  knn_pred = predict(knn.fit, newdata = test_cv_ER[,-length(test_cv_ER) ])
+  
+  knn_pred_num = as.numeric(knn_pred == "Positive")
+  
+  actual = as.numeric(test_cv_ER$ER.Status== "Positive")
+  
+  roc = roc(actual, knn_pred_num, auc=TRUE)
+  plot.roc(roc, col= "red", lwd = 3, print.auc = TRUE, main = paste("KNN CV ER: ", i))
+  
+  #HER
+  knn.fit = kknn(train_cv_HER$HER2.Final.Status ~ ., train = train_cv_HER[,-ncol(train_cv_HER)], test = test_cv_HER[,-ncol(test_cv_HER)], 
+                        k = best_k[1], kernel = "rectangular")
+  
+  knn_pred = predict(knn.fit, newdata = test_cv_HER[,-length(test_cv_HER) ])
+  
+  knn_pred_num = as.numeric(knn_pred == "Positive")
+  
+  actual = as.numeric(test_cv_HER$HER2.Final.Status == "Positive")
+  
+  roc = roc(actual, knn_pred_num, auc=TRUE)
+  plot.roc(roc, col= "red", lwd = 3, print.auc = TRUE, main = paste("KNN CV HER: ", i))
+  
+  #hist
+  knn.fit = kknn(train_cv_hist$histological.type ~ ., train = train_cv_hist[,-ncol(train_cv_hist)], test = test_cv_hist[,-ncol(test_cv_hist)], 
+                        k = best_k[1], kernel = "rectangular")
+  
+  knn_pred = predict(knn.fit, newdata = test_cv_hist[,-length(test_cv_hist) ])
+
+  knn_pred_num = as.numeric(knn_pred == "IDC")
+  
+  actual = as.numeric(test_cv_hist$histological.type == "IDC")
+  
+  roc = roc(actual, knn_pred_num, auc=TRUE)
+#  plot.roc(roc, col= "red", lwd = 3, print.auc = TRUE, main = paste("KNN CV Hist: ", i))
+  
+}
+```
