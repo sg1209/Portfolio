@@ -1,0 +1,851 @@
+---
+title: "MLB 2023 Performance Prediction"
+author: "Seunggyun Shin"
+date: '2022 11 30 '
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, message = F, warning = F, echo= FALSE}
+library(tidyverse)
+library(Lahman)
+```
+
+
+**Introduction**
+ Major League Baseball(MLB) is one of four outstanding sports leagues in the United States which are called "Big Four". With the fame of the sports and increasing demands of data analytics, importance of applications of data analytics in sports is increasing as well such as Sabermetrics. Especially in baseball, playing over 150 games per year, plenty of statistics are collected from MLB, which is the reason baseball is called "sports of statistics". However, it is difficult to make expectations about performances of players in the future as there are plenty of uncertainties in baseball. So, purpose of this project is to build the machine learning model to predict future performance of each player using and analyzing data collected throughout decades.
+ 
+ OPS(On-base Plus Slugging) is on of the most significant statistics used to evaluate abilities and productivity of batters.OPS is calculated through adding up OBP(On Base Percentage) and SLG(Slugging) which represent abilities of batters to get on bases and make extra-base hits to produce runs. In this project, by establishing three models to expect BA(Batting Average), IsoD(Isolated Discipline) and IsoP(Isolated Power), eventually expected OPS will be calculated.
+ 
+- Batting Average = Hits / At-bat
+- Isolated Discipline = On-base percentage - Batting Average (represents abilities of batters to distinguish strikes and balls)
+- Isolated Power = Slugging - Batting Average (represents pure powers of batters to make extra-base hits)
+
+
+ Data collected from 1969 to 2019 will be used to build prediction models, and data collected on 2021 and 2022 will be used to make final prediction of 2023 season as 1969 is the cut-off of modern baseball (Stark, ESPN, 2006), and at least data from two seasons are needed to make prediction while 2020 season was shortened due to COVID-19 issue. In process to build models, only data of batters who satisfied at least half of minimum At-bat (half of 502) for more than two seasons in a row since statistics with small At-bat number will not be significant. In addition, setting regulation of the minimum At-bat(502) will drastically reduce the sample size to build models and will ignore some significant statistics. At-bat is fixed to 502 since 1962 as the number of games is fixed to 162 on 1962, and data of shortened seasons will be automatically ignored through filtering data only with certain At-bat number.
+
+https://www.espn.com/mlb/columns/story?columnist=stark_jayson&id=2471349
+
+**Data Explanation**
+In this project, three types of datasets will be used.
+1. Batting dataset from Lahman library
+  - Batting dataset contains data of batters from 1871 to 2021.
+2. People dataset from Lahman library
+  - People dataset contains personal information data of MLB player.
+3. 2022 Major League batting data from Kaggle
+  - 2022 batting data is collected from external source as the batting dataset only contains data until 2021.
+  
+Manipulating these three datasets, final data frame containing following variables are created.
+
+
+https://www.kaggle.com/datasets/vivovinco/2022-mlb-player-stats
+
+
+*Prediction Variables*
+- Season
+- BA (H / AB)
+- BABIP (H-HR) / (AB - HR + K + SF): Batting average of in-field hits
+- IsoD (OBP - BA)
+- IsoP (SLG - BA)
+- BBK (BB/K): Ratio of Base on Balls and Strike outs
+- Age
+- Number of Seasons played
+- BA change from previous season(%)
+- BABIP change from previous season(%)
+- IsoD change from previous season(%)
+- IsoP change from previous season(%)
+- BBK change from previous season(%)
+
+*Response Variables*
+- BA next season
+- IsoD next season
+- IsoP next season
+
+- Data of actual number such as number of hits and home runs are not used as most of statistics are calculated through those numbers, and the number can vary depending on At-bat opportunities, which means multicollinearity issue can occur.
+
+- IsoD, IsoP is used rather than OBP and SLG as OBP and SLG is calculated through adding IsoD and IsoP to batting average. If batting average increases, OBP and SLG will be increased automatically, which can also cause multicollinearity issue.
+
+- Final OPS will be calculated through following equation.
+$OPS = 2 * BA + IsoD + IsoP$
+
+**Data Manipulations for analysis**
+```{r, echo = F}
+data2022 = read.csv("2022 MLB Player Stats - Batting.csv")
+```
+
+
+```{r, message = F}
+data = Batting %>%
+  filter(yearID >= 1969 & yearID < 2020) %>%
+  group_by(playerID, yearID) %>%
+  replace_na(list(HBP = 0 , SF = 0)) %>%
+  summarise(yearID = yearID,
+            G = sum(G),
+            AB = sum(AB),
+            R = sum(R),
+            H = sum(H),
+            X2B = sum(X2B),
+            X3B = sum(X3B),
+            HR = sum(HR),
+            RBI = sum(RBI),
+            SB = sum(SB),
+            CS = sum(CS),
+            BB = sum(BB),
+            SO = sum(SO),
+            HBP = sum(HBP),
+            SH = sum(SH),
+            SF = sum(SF)) %>%
+  mutate(X1B = H - (X2B + X3B + HR)) %>%
+  mutate(SBpct = (SB / (SB + CS))) %>%
+  mutate(OBP = (H + BB + HBP) / (AB + BB + HBP + SF)) %>%
+  mutate(SLG = (X1B + 2* X2B + 3 * X3B + 4 * HR) / AB) %>%
+  mutate(OPS = OBP + SLG) %>%
+  mutate(AVG = H/AB) %>%
+  mutate(BABIP = (H - HR) / (AB - HR - SO + SF)) %>%
+  mutate(IsoD = OBP - AVG) %>%
+  mutate(IsoP = SLG - AVG) %>%
+  mutate(BBK = BB/SO) %>%
+  arrange(playerID)
+```
+
+
+Prediction variables needed are calculated through equations using numbers from the original data set.
+
+
+```{r}
+Names = People %>%
+  mutate(fullname = paste(nameFirst, nameLast)) %>%
+  dplyr::select(playerID, birthYear, debut, fullname)
+
+debutseason = c()
+for (i in 1:nrow(Names)){
+  debutseason[i] = strsplit(Names$debut, split = "-", fixed = T)[[i]][1]
+}
+
+Names$debutseason = as.integer(debutseason)
+Names = Names %>%
+  dplyr::select(-debut)
+```
+
+```{r, echo = F}
+data2 = inner_join(data, Names, by = "playerID")
+```
+
+Data frame containing full names, birth years, debut seasons and playerIDs is created through processing Names data set to calculate number of seasons played and age. Also, playerID is used to inner join two data set - Names and Batting.
+
+
+```{r, echo = F}
+#Calculate proportion of the number of season each batter has satisfied the minimum AB
+data3 = data2 %>%
+  mutate(seasons = yearID - debutseason + 1) %>%
+  mutate(age = yearID - birthYear + 1) %>%
+  mutate(minAB = ifelse(AB >= 502, yes = 1, no = 0))
+
+data4 = data3 %>% 
+  group_by(playerID) %>%
+  mutate(minAB_num = cumsum(minAB)) %>%
+  mutate(minAB_pct = minAB_num / seasons) %>%
+  dplyr::select(playerID, fullname, yearID, AB, AVG, BABIP, IsoD, IsoP, BBK, age, seasons,minAB, minAB_pct)
+```
+
+```{r}
+#Leave data with at least 3 seasons (to compare with previous season and next season, get response variables)
+data5 = data4 %>%
+  filter(AB >= 502 *1/2) %>%
+  distinct() %>%
+  arrange(playerID, yearID) %>%
+  group_by(playerID) %>%
+  mutate(Avg_chg = (AVG - lag(AVG)) * 100/lag(AVG),
+         BABIP_chg = (BABIP - lag(BABIP)) * 100/lag(BABIP),
+         IsoD_chg = (IsoD - lag(IsoD)) * 100/lag(IsoD),
+         IsoP_chg = (IsoP - lag(IsoP)) * 100/lag(IsoP),
+         BBK_chg = (BBK - lag(BBK)) * 100/lag(BBK)) %>% # Prediction variables
+  mutate(Avg_next = lead(AVG),
+         IsoD_next = lead(IsoD),
+         IsoP_next = lead(IsoP)) %>% #response variables
+  drop_na() %>%
+  dplyr::select(-c(minAB_pct, minAB, AB))
+
+
+#Final dataset for modeling
+head(data5, 10)
+```
+
+After joining two datasets and calculating variables needed, data was grouped by playerID to filter players filled half of At-bat number for three seasons as data of three seasons is necessary to establish prediction models - two seasons to create prediction variables and the third season to create response variables.
+
+
+Final Data set for data modeling is above.
+
+**Data exploration**
+
+```{r, echo = F}
+#distributions of target variables
+library(ggplot2)
+library(ggpubr)
+dist1 = ggplot(data5, aes(x = Avg_next)) + 
+  geom_histogram(color = "black", fill = "light blue") +
+  xlab("Batting Average") +
+  ylab("")+
+  theme_bw() + 
+  theme(
+    panel.grid.minor = element_blank(),
+    panel.grid.major = element_blank()
+  )
+  
+dist2 = ggplot(data5, aes(x = IsoD_next)) + 
+  geom_histogram(color = "black", fill = "light blue") +
+  xlab("Isolated Discipline") +
+  ylab("")+
+  theme_bw() + 
+  theme(
+    panel.grid.minor = element_blank(),
+    panel.grid.major = element_blank()
+  )
+
+dist3 = ggplot(data5, aes(x = IsoP_next)) + 
+  geom_histogram(color = "black", fill = "light blue") +
+  xlab("Isolated Power") +
+  ylab("")+
+  theme_bw() + 
+  theme(
+    panel.grid.minor = element_blank(),
+    panel.grid.major = element_blank())
+
+dists = ggarrange(dist1, dist2, dist3)
+annotate_figure(dists, top = text_grob("Distributions of response variables", 
+               color = "black", face = "bold", size = 14))
+```
+
+Distributions of three response variables are above. All three variables are seemingly normal distributed while IsoD and IsoP are bit right skewed that they are very appropriate for applying to data modeling.
+
+```{r, message = F, echo = F}
+#Multicollinearity
+library(caret)
+library(car)
+library(tidyverse)
+#Leave only prediction variables
+df = data5 %>%
+  dplyr::select(-c(playerID, fullname, yearID))
+df1 = df[ , -1]
+```
+
+```{r, message = F, echo = F}
+#Correlation plot
+library(corrplot)
+M = cor(df1)
+corrplot(M, type = "upper", order = "hclust", tl.col = "black")
+```
+
+Graphic above is the correlation plot of the data set. You can see general correlation between variables.
+
+
+```{r, echo = F}
+df_avg = df %>%
+  dplyr::select(-c(IsoD_next, IsoP_next))
+df_avg = df_avg[ ,-1]
+```
+
+```{r, echo = F}
+mod_vif = lm(Avg_next ~ ., data = df_avg)
+```
+```{r}
+vif(mod_vif)
+```
+
+According to variance inflation factor analysis, there are some variables with multicollinearity.
+
+```{r, echo = F}
+mod_vif2 = lm(Avg_next ~ . - Avg_chg , data = df_avg)
+```
+```{r}
+vif(mod_vif2)
+```
+
+By removing BA_chg, multicollinearity issue can be removed. This result is used in further linear regression modeling, and regression models that can resolve this issue are tested as well.
+
+
+```{r, echo = F}
+MSE = function(y, y_eval, df){
+  SSE = sum((y_eval - y) ^ 2)
+  SST = sum((y - mean(y))^2)
+  R_square = 1 - SSE / SST
+  MSE = SSE / nrow(df)
+  return(paste("R_square :" , R_square, "   ", "MSE : ", MSE))
+}
+```
+
+
+
+```{r}
+#train, test split (7:3)
+df = df[ ,-1]
+test = sample(nrow(df), nrow(df) * 0.3, replace = F)
+train = df[-test ,]
+test = df[test, ]
+```
+
+
+**Modeling**
+*Modeling for Batting Average*
+```{r, message = F, echo=F, results='hide'}
+library(MASS)
+train_avg = train %>%
+  dplyr::select(-c(IsoD_next, IsoP_next))
+test_avg = test %>%
+  dplyr::select(-c(IsoD_next, IsoP_next))
+#Linear regression(full model)
+linear_ba = lm(Avg_next ~ ., data = train_avg)
+#Model depending vif
+linear_ba2 = lm(Avg_next ~ . - Avg_chg, data = train_avg)
+#Stepwise AIC model (Variable selection depending on p-value)
+linear_ba3 = stepAIC(linear_ba, direction = "both",
+                     trace = FALSE)
+
+
+pred_avg_linear = predict(linear_ba, newdata = test_avg)
+pred_avg_linear2 = predict(linear_ba2, newdata = test_avg)
+pred_avg_linear3 = predict(linear_ba3, newdata = test_avg)
+```
+```{r, echo = F, eval = F, results='hide'}
+MSE(test_avg$Avg_next, pred_avg_linear, test_avg)
+MSE(test_avg$Avg_next, pred_avg_linear2, test_avg)
+MSE(test_avg$Avg_next, pred_avg_linear3, test_avg)
+```
+
+- Best linear model: stepwise AIC
+
+```{r, message = F, eval = F, echo = F, results='hide'}
+#KNN regression
+library(kknn)
+library(caret)
+traincv = trainControl(method = "repeatedcv",
+                       number = 5, repeats = 3)
+
+knnfit_avg = train(Avg_next ~ ., method = "knn",
+               data = train_avg, tuneGrid = data.frame(k = seq(1, 15 ,2)),
+               trControl = traincv)
+
+knnpred_avg = predict(knnfit_avg, newdata = test_avg)
+MSE(test_avg$Avg_next, knnpred_avg, test_avg)
+```
+
+
+```{r, message = F, eval=F, echo = F, results='hide'}
+library(randomForest)
+#randomforest regressor
+mtry = sqrt(ncol(train_avg))
+tunegrid = expand.grid(.mtry = mtry)
+
+
+rffit_avg = train(Avg_next ~ . , data = train_avg, method = "rf",
+               trControl = traincv,
+               tuneGrid = tunegrid)
+
+rfpred_avg = predict(rffit_avg, newdata = test_avg)
+MSE(test_avg$Avg_next, rfpred_avg, test_avg)
+```
+
+```{r, message=FALSE, eval=F,  echo = F, results='hide'}
+#lasso regression
+library(glmnet)
+lasso_avg = cv.glmnet(x = as.matrix(train_avg[ , -13]), y = as.matrix(train_avg[ ,13]), alpha = 1)
+
+lasso_best_avg = glmnet(x = as.matrix(train_avg[ , -13]), y = as.matrix(train_avg[ ,13]), alpha = 1, lambda = lasso_avg$lambda.min)
+lassopred_avg = predict(lasso_best_avg, newx = as.matrix(test_avg[ , -13]))
+MSE(test_avg$Avg_next, lassopred_avg, test_avg)
+```
+
+```{r, message = F, results='hide', eval=F,  echo = F}
+#XGBoost 
+library(xgboost)
+xgb_train_avg = xgb.DMatrix(data = as.matrix(train_avg[ ,-13]), label = as.matrix(train_avg[, 13]))
+xgb_test_avg = xgb.DMatrix(data = as.matrix(test_avg[ ,-13]), label = as.matrix(test_avg[, 13]))
+
+watchlist = list(train = xgb_train_avg, test = xgb_test_avg)
+xgb_avg = xgb.train(data = xgb_train_avg, max.depth = 3, watchlist = watchlist, nrounds = 100)
+```
+
+```{r, eval=F,  echo = F, , results='hide'}
+xgb_avg_final = xgboost(data = xgb_train_avg, max.depth = 3, nrounds = 24, verbose = 0)
+
+xgbpred_avg = predict(xgb_avg_final, xgb_test_avg)
+MSE(test_avg$Avg_next, xgbpred_avg, test_avg)
+```
+
+
+| Model(BA)        | $R^2$    | MSE       |
+|------------------|----------|-----------|
+| Linear Regression| 0.268    | 0.000678  |
+| KNN              | -0.039   | 0.00096   |
+| Random Forest    | 0.240    | 0.000684  |
+| Lasso Regression | 0.268    | 0.000679  |
+| Xgboost          | 0.250    | 0.000695  |
+
+Best: Linear Regression
+```{r, echo=F}
+final_BA_model = linear_ba3
+```
+
+
+*Modeling for Isolated Discipline*
+```{r, message = F, echo = F, results='hide'}
+train_IsoD = train %>%
+  dplyr::select(-c(Avg_next, IsoP_next))
+test_IsoD = test %>%
+  dplyr::select(-c(Avg_next, IsoP_next))
+#Linear regression(full model)
+linear_IsoD = lm(IsoD_next ~ ., data = train_IsoD)
+#Model depending vif
+linear_IsoD2 = lm(IsoD_next ~ . - Avg_chg, data = train_IsoD)
+#Stepwise AIC model (Variable selection depending on p-value)
+linear_IsoD3 = stepAIC(linear_IsoD, direction = "both",
+                     trace = FALSE)
+
+
+pred_IsoD_linear = predict(linear_IsoD, newdata = test_IsoD)
+pred_IsoD_linear2 = predict(linear_IsoD2, newdata = test_IsoD)
+pred_IsoD_linear3 = predict(linear_IsoD3, newdata = test_IsoD)
+
+```
+```{r, echo = F, eval = F, results='hide'}
+MSE(test_IsoD$IsoD_next, pred_IsoD_linear, test_IsoD)
+MSE(test_IsoD$IsoD_next, pred_IsoD_linear2, test_IsoD)
+MSE(test_IsoD$IsoD_next, pred_IsoD_linear3, test_IsoD)
+```
+
+
+
+```{r, message = F, eval=F,  echo = F, results='hide'}
+#KNN regression
+traincv = trainControl(method = "repeatedcv",
+                       number = 5, repeats = 3)
+
+knnfit_IsoD = train(IsoD_next ~ ., method = "knn",
+               data = train_IsoD, tuneGrid = data.frame(k = seq(1, 15 ,2)),
+               trControl = traincv)
+
+knnpred_IsoD = predict(knnfit_IsoD, newdata = test_IsoD)
+MSE(test_IsoD$IsoD_next, knnpred_IsoD, test_IsoD)
+```
+
+```{r, message = F, eval = FALSE, echo = F, results='hide'}
+#randomforest regressor
+mtry = sqrt(ncol(train_IsoD))
+tunegrid = expand.grid(.mtry = mtry)
+
+
+rffit_IsoD = train(IsoD_next ~ . , data = train_IsoD, method = "rf",
+               trControl = traincv,
+               tuneGrid = tunegrid)
+
+rfpred_IsoD = predict(rffit_IsoD, newdata = test_IsoD)
+MSE(test_IsoD$IsoD_next, rfpred_IsoD, test_IsoD)
+```
+
+```{r, message=FALSE, eval=F,  echo = F, results='hide'}
+#lasso regression
+lasso_IsoD = cv.glmnet(x = as.matrix(train_IsoD[ , -13]), y = as.matrix(train_IsoD[ ,13]), alpha = 1)
+
+lasso_best_IsoD = glmnet(x = as.matrix(train_IsoD[ , -13]), y = as.matrix(train_IsoD[ ,13]), alpha = 1, lambda = lasso_IsoD$lambda.min)
+lassopred_IsoD = predict(lasso_best_IsoD, newx = as.matrix(test_IsoD[ , -13]))
+MSE(test_IsoD$IsoD_next, lassopred_IsoD, test_IsoD)
+```
+
+
+
+```{r, message = F, results='hide', eval=F,  echo = F}
+#XGBoost 
+library(xgboost)
+xgb_train_IsoD = xgb.DMatrix(data = as.matrix(train_IsoD[ ,-13]), label = as.matrix(train_IsoD[, 13]))
+xgb_test_IsoD = xgb.DMatrix(data = as.matrix(test_IsoD[ ,-13]), label = as.matrix(test_IsoD[, 13]))
+
+watchlist = list(train = xgb_train_IsoD, test = xgb_test_IsoD)
+xgb_IsoD = xgb.train(data = xgb_train_IsoD, max.depth = 3, watchlist = watchlist, nrounds = 100)
+```
+
+```{r, eval=F,  echo = F, results='hide'}
+xgb_IsoD_final = xgboost(data = xgb_train_IsoD, max.depth = 3, nrounds = 25, verbose = 0)
+
+xgbpred_IsoD = predict(xgb_IsoD_final, xgb_test_IsoD)
+MSE(test_IsoD$IsoD_next, xgbpred_IsoD, test_IsoD)
+```
+
+| Model(IsoD)      | $R^2$    | MSE       |
+|------------------|----------|-----------|
+| Linear Regression| 0.606    | 0.0002507 |
+| KNN              | -0.023   | 0.000652  |
+| Random Forest    | 0.587    | 0.000261  |
+| Lasso Regression | 0.606    | 0.0002508 |
+| Xgboost          | 0.601    | 0.000254  |
+
+Best: Linear Regression
+```{r, echo = F, results='hide'}
+final_IsoD_model = linear_IsoD3
+```
+
+
+*Modeling for Isolated Power*
+```{r, message = F, echo = F, results='hide'}
+train_IsoP = train %>%
+  dplyr::select(-c(Avg_next, IsoD_next))
+test_IsoP = test %>%
+  dplyr::select(-c(Avg_next, IsoD_next))
+#Linear regression(full model)
+linear_IsoP = lm(IsoP_next ~ ., data = train_IsoP)
+#Model depending vif
+linear_IsoP2 = lm(IsoP_next ~ . - Avg_chg, data = train_IsoP)
+#Stepwise AIC model (Variable selection depending on p-value)
+linear_IsoP3 = stepAIC(linear_IsoP, direction = "both",
+                     trace = FALSE)
+
+pred_IsoP_linear = predict(linear_IsoP, newdata = test_IsoP)
+pred_IsoP_linear2 = predict(linear_IsoP2, newdata = test_IsoP)
+pred_IsoP_linear3 = predict(linear_IsoP3, newdata = test_IsoP)
+
+MSE(test_IsoP$IsoP_next, pred_IsoP_linear, test_IsoP)
+MSE(test_IsoP$IsoP_next, pred_IsoP_linear2, test_IsoP)
+MSE(test_IsoP$IsoP_next, pred_IsoP_linear3, test_IsoP)
+```
+
+```{r, message = F, echo = F, eval = F, results='hide'}
+#KNN regression
+traincv = trainControl(method = "repeatedcv",
+                       number = 5, repeats = 3)
+
+knnfit_IsoP = train(IsoP_next ~ ., method = "knn",
+               data = train_IsoP, tuneGrid = data.frame(k = seq(1, 15 ,2)),
+               trControl = traincv)
+
+knnpred_IsoP = predict(knnfit_IsoP, newdata = test_IsoP)
+MSE(test_IsoP$IsoP_next, knnpred_IsoP, test_IsoP)
+```
+
+```{r, message = F, eval = F, echo = F, results='hide'}
+#randomforest regressor
+mtry = sqrt(ncol(train_IsoP))
+tunegrid = expand.grid(.mtry = mtry)
+
+
+rffit_IsoP = train(IsoP_next ~ . , data = train_IsoP, method = "rf",
+               trControl = traincv,
+               tuneGrid = tunegrid)
+
+rfpred_IsoP = predict(rffit_IsoP, newdata = test_IsoP)
+MSE(test_IsoP$IsoP_next, rfpred_IsoP, test_IsoP)
+```
+```{r, message=FALSE, echo = F, results='hide'}
+#lasso regression
+library(glmnet)
+lasso_IsoP = cv.glmnet(x = as.matrix(train_IsoP[ , -13]), y = as.matrix(train_IsoP[ ,13]), alpha = 1)
+
+lasso_best_IsoP = glmnet(x = as.matrix(train_IsoP[ , -13]), y = as.matrix(train_IsoP[ ,13]), alpha = 1, lambda = lasso_IsoP$lambda.min)
+lassopred_IsoP = predict(lasso_best_IsoP, newx = as.matrix(test_IsoP[ , -13]))
+```
+```{r, result = 'hide'}
+MSE(test_IsoP$IsoP_next, lassopred_IsoP, test_IsoP)
+```
+
+```{r, message = F, results='hide', echo = F, eval = F}
+#XGBoost 
+library(xgboost)
+xgb_train_IsoP = xgb.DMatrix(data = as.matrix(train_IsoP[ ,-13]), label = as.matrix(train_IsoP[, 13]))
+xgb_test_IsoP = xgb.DMatrix(data = as.matrix(test_IsoP[ ,-13]), label = as.matrix(test_IsoP[, 13]))
+
+watchlist = list(train = xgb_train_IsoP, test = xgb_test_IsoP)
+xgb_IsoP = xgb.train(data = xgb_train_IsoP, max.depth = 3, watchlist = watchlist, nrounds = 100)
+```
+
+```{r, echo = F, eval = F, results='hide'}
+xgb_IsoP_final = xgboost(data = xgb_train_IsoP, max.depth = 3, nrounds = 27, verbose = 0)
+
+xgbpred_IsoP = predict(xgb_IsoP_final, xgb_test_IsoP)
+```
+```{r, results = 'hide', echo = F, eval = F}
+MSE(test_IsoP$IsoP_next, xgbpred_IsoP, test_IsoP)
+```
+
+
+| Model(IsoP)      | $R^2$    | MSE       |
+|------------------|----------|-----------|
+| Linear Regression| 0.578    | 0.00163   |
+| KNN              | -0.013   | 0.00387   |
+| Random Forest    | 0.550    | 0.00171   |
+| Lasso Regression | 0.573    | 0.00154   |
+| Xgboost          | 0.561    | 0.00167   |
+
+Best: Lasso Regression
+```{r}
+final_IsoP_model = lasso_best_IsoP
+coef(final_IsoP_model)
+```
+
+5 types of regression modeling methods were used. Linear regression models using all the variables, VIF analysis and stepwise AIC were created and linear model with the highest $R^2$ value and the lowest MSE(Mean Square Error) was chosen. K Nearest Neighbors regression did not have effective prediction that it had negative $R^2$ values for all three predictions. Random Forest, Lasso Regression and Xgboost modeling were used to deal with multicollinearity issue of the data set. By comparing $R^2$ and MSE values, the best modeling method was chosen.
+
+
+```{r}
+#Plots for Batting Average model
+par(mfrow = c(2,2))
+plot(final_BA_model)
+```
+
+
+```{r}
+#Plots for Isolated Discipline model
+par(mfrow = c(2,2))
+plot(final_IsoD_model)
+```
+
+According to assumption check using plots, for both linear regression models chosen for batting average and isolated discipline, both models met normality assumption.
+
+
+**Preprocess data for final prediction**
+```{r, message = F}
+a = data2022$Name
+a = gsub('\\?', ' ', a)
+a = gsub('\\*', '', a)
+a = gsub('\\#' , "", a)
+
+data2022$Name = a
+colnames(data2022)[2] = "fullname"
+df2022 = inner_join(data2022, Names, by = "fullname")
+df2022$yearID = 2022
+
+
+df2022_2 = df2022 %>%
+  filter(Lg != "MLB") %>%
+  group_by(playerID, yearID) %>%
+  replace_na(list(HBP = 0 , SF = 0)) %>%
+  summarise(yearID = yearID,
+            G = sum(G),
+            AB = sum(AB),
+            R = sum(R),
+            H = sum(H),
+            X2B = sum(X2B),
+            X3B = sum(X3B),
+            HR = sum(HR),
+            RBI = sum(RBI),
+            SB = sum(SB),
+            CS = sum(CS),
+            BB = sum(BB),
+            SO = sum(SO),
+            HBP = sum(HBP),
+            SH = sum(SH),
+            SF = sum(SF),
+            fullname = fullname,
+            debutseason = debutseason,
+            birthYear = birthYear) %>%
+  mutate(X1B = H - (X2B + X3B + HR)) %>%
+  mutate(SBpct = (SB / (SB + CS))) %>%
+  mutate(OBP = (H + BB + HBP) / (AB + BB + HBP + SF)) %>%
+  mutate(SLG = (X1B + 2* X2B + 3 * X3B + 4 * HR) / AB) %>%
+  mutate(OPS = OBP + SLG) %>%
+  mutate(AVG = H/AB) %>%
+  mutate(BABIP = (H - HR) / (AB - HR - SO + SF)) %>%
+  mutate(IsoD = OBP - AVG) %>%
+  mutate(IsoP = SLG - AVG) %>%
+  mutate(BBK = BB/SO)
+
+
+df2022_3 = df2022_2 %>%
+  mutate(seasons = yearID - debutseason + 1) %>%
+  mutate(age = yearID - birthYear + 1) %>%
+  mutate(minAB = ifelse(AB >= 502, yes = 1, no = 0))
+
+df2022_4 = df2022_3 %>%
+  summarise(fullname = fullname,
+            yearID = yearID,
+            AB = AB,
+            AVG = AVG,
+            BABIP = BABIP,
+            IsoD = IsoD,
+            IsoP = IsoP,
+            BBK = BBK,
+            seasons = seasons,
+            age = age,
+            minAB = minAB) %>%
+  distinct()
+
+```
+
+For final prediction, as data of 2022 season is collected separately, data manipulation was necessary to standardize formats of data sets and to combine them. Due to encoding error, to eliminate exclamation marks in the player name, string management was used.
+
+
+```{r, message = F, echo = F}
+data2021 = Batting %>%
+  filter(yearID == 2021) %>%
+  group_by(playerID, yearID) %>%
+  replace_na(list(HBP = 0 , SF = 0)) %>%
+  summarise(yearID = yearID,
+            G = sum(G),
+            AB = sum(AB),
+            R = sum(R),
+            H = sum(H),
+            X2B = sum(X2B),
+            X3B = sum(X3B),
+            HR = sum(HR),
+            RBI = sum(RBI),
+            SB = sum(SB),
+            CS = sum(CS),
+            BB = sum(BB),
+            SO = sum(SO),
+            HBP = sum(HBP),
+            SH = sum(SH),
+            SF = sum(SF)) %>%
+  mutate(X1B = H - (X2B + X3B + HR)) %>%
+  mutate(SBpct = (SB / (SB + CS))) %>%
+  mutate(OBP = (H + BB + HBP) / (AB + BB + HBP + SF)) %>%
+  mutate(SLG = (X1B + 2* X2B + 3 * X3B + 4 * HR) / AB) %>%
+  mutate(OPS = OBP + SLG) %>%
+  mutate(AVG = H/AB) %>%
+  mutate(BABIP = (H - HR) / (AB - HR - SO + SF)) %>%
+  mutate(IsoD = OBP - AVG) %>%
+  mutate(IsoP = SLG - AVG) %>%
+  mutate(BBK = BB/SO) %>%
+  arrange(playerID) %>%
+  distinct()
+
+data2021_2 = inner_join(data2021, Names, by = "playerID")
+data2021_3 = data2021_2 %>%
+  mutate(seasons = yearID - debutseason + 1) %>%
+  mutate(age = yearID - birthYear + 1) %>%
+  mutate(minAB = ifelse(AB >= 502, yes = 1, no = 0))
+
+
+data2021_4 = data2021_3 %>%
+  summarise(fullname = fullname,
+            AB = AB,
+            yearID = yearID,
+            AVG = AVG,
+            BABIP = BABIP,
+            IsoD = IsoD,
+            IsoP = IsoP,
+            BBK = BBK,
+            seasons = seasons,
+            age = age,
+            minAB = minAB) %>%
+  distinct()
+```
+
+```{r}
+df_2122 = rbind(data2021_4, df2022_4) %>%
+  group_by(playerID) %>%
+  mutate(cnt = n()) %>%
+  arrange(playerID) %>%
+  filter(cnt >= 2)
+
+
+#Final dataset for final prediction
+df2122_2 = df_2122 %>%
+  filter(AB >= 100) %>%
+  distinct() %>%
+  arrange(playerID, yearID) %>%
+  group_by(playerID) %>%
+  mutate(Avg_chg = (AVG - lag(AVG)) * 100/lag(AVG),
+         BABIP_chg = (BABIP - lag(BABIP)) * 100/lag(BABIP),
+         IsoD_chg = (IsoD - lag(IsoD)) * 100/lag(IsoD),
+         IsoP_chg = (IsoP - lag(IsoP)) * 100/lag(IsoP),
+         BBK_chg = (BBK - lag(BBK)) * 100/lag(BBK)) %>% # Prediction variables
+  filter(yearID == 2022)
+
+df2122_2 = na.omit(df2122_2)
+```
+
+Final data set was created by joining two data sets. 
+
+```{r}
+#make final prediction
+pred_final_BA = predict(final_BA_model, newdata = df2122_2)
+pred_final_IsoD = predict(final_IsoD_model, newdata = df2122_2)
+
+IsoP_final_x = df2122_2 %>%
+  dplyr::select(-c(fullname, AB, minAB, cnt, yearID))
+IsoP_final_x = IsoP_final_x[ , -1]
+
+pred_final_IsoP = predict(final_IsoP_model, newx = as.matrix(IsoP_final_x))[,1]
+```
+
+```{r}
+#Final dataset
+df2122_2$BA_2023 = pred_final_BA
+df2122_2$IsoD_2023 = pred_final_IsoD
+df2122_2$IsoP_2023 = pred_final_IsoP
+
+
+final = df2122_2 %>%
+  mutate(OBA_2023 = round(BA_2023 + IsoD_2023, 3),
+         SLG_2023 = round(BA_2023 + IsoP_2023, 3),
+         OPS_2023 = round(OBA_2023 + SLG_2023, 3)) %>%
+  dplyr::select(fullname, BA_2023, OBA_2023, SLG_2023, OPS_2023)
+final = final[ , -1]
+final$BA_2023 = round(final$BA_2023, 3)
+```
+
+Final predictions were made using final data set, and those predictions were combined into the data as the result.
+
+
+**Conclusion**
+```{r}
+#Top 10 - Batting Average
+head(final %>% arrange(desc(BA_2023)), 10) %>%
+  dplyr::select(fullname, BA_2023)
+```
+
+```{r}
+#Top 10 - On base average
+head(final %>% arrange(desc(OBA_2023)), 10) %>%
+  dplyr::select(fullname, OBA_2023)
+```
+
+```{r}
+#Top 10 - Slugging
+head(final %>% arrange(desc(SLG_2023)), 10) %>%
+  dplyr::select(fullname, SLG_2023)
+```
+
+```{r}
+#Top 10 - OPS
+head(final %>% arrange(desc(OPS_2023)), 10) %>%
+  dplyr::select(fullname, OPS_2023)
+```
+
+Above are top 10 players of 4 predictions for 2023 season. Comparing them to records of 2022, they seem quite reasonable. However, there are so many unexpected situations in baseball. So, it is recommended to use it as references rather than highly depending on the predictions.
+
+
+Below are predictions of players with my personal interest.
+```{r, echo  = F}
+#Ha-Seong Kim
+final %>% filter(fullname == "Ha-Seong Kim")
+```
+
+```{r, echo  = F}
+#Ji-Man Choi
+final %>% filter(fullname == "Ji-Man Choi")
+```
+
+
+```{r, echo  = F}
+#Shohei Ohtani
+final %>% filter(fullname == "Shohei Ohtani")
+```
+
+
+```{r, echo  = F}
+#Mike Trout
+final %>% filter(fullname == "Mike Trout")
+```
+
+
+```{r, echo  = F}
+#Bryce Harper
+final %>% filter(fullname == "Bryce Harper")
+```
+
+```{r , echo  = F}
+#Justin Turner
+final %>% filter(fullname == "Justin Turner")
+```
