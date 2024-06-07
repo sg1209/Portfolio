@@ -1,0 +1,379 @@
+---
+title: "Gas Turbine Nitrogen Oxide Emission Reduction"
+output: html_document
+date: '2022-09-26'
+---
+## Our Data
+```{r}
+library(tidyverse)
+library(MASS)
+library(glmnet)
+library(car)
+
+df = read.csv("Group3Data.csv")
+```
+
+## Data Splitting / Train & Test Data
+```{r}
+# split data
+df_low=df[df$TEY<130,]
+df_reg=df[130<=df$TEY & df$TEY<=136,]
+df_high=df[136<df$TEY& df$TEY<=160,]
+df_extreme=df[df$TEY>160,]
+
+#train and testing data
+set.seed(1)
+index_reg =  sample(1:nrow(df_reg), nrow(df_reg)*0.7)
+train_reg = df_reg[index_reg,]
+test_reg = df_reg[-index_reg,]
+
+index_lower =  sample(1:nrow(df_low), nrow(df_low)*0.7)
+train_low = df_low[index_lower,]
+test_low = df_low[-index_lower,]
+
+index_high =  sample(1:nrow(df_high), nrow(df_high)*0.7)
+train_high = df_high[index_high,]
+test_high = df_high[-index_high,]
+
+index_extreme =  sample(1:nrow(df_extreme), nrow(df_extreme)*0.7)
+train_extreme = df_extreme[index_extreme,]
+test_extreme = df_extreme[-index_extreme,]
+```
+
+## Data Exploration
+```{r}
+
+cor(df$AFDP,df$NOX)
+cor(df$GTEP,df$NOX)
+cor(df$CDP,df$NOX)
+cor(df$TAT,df$NOX)
+cor(df$TIT,df$NOX)
+cor(df$TEY,df$NOX)
+cor(df$AT,df$NOX)
+cor(df$AP,df$NOX)
+cor(df$AH,df$NOX)
+plot(df$AFDP,df$NOX, ylab = "NOX", xlab = "AFDP")
+plot(df$GTEP,df$NOX, ylab = "NOX", xlab = "GTEP")
+plot(df$CDP,df$NOX, ylab = "NOX", xlab = "CDP")
+plot(df$TEY,df$NOX, ylab = "NOX",xlab = "TEY")
+plot(df$TIT,df$NOX, ylab = "NOX",xlab = "TIT")
+plot(df$TAT,df$NOX, ylab = "NOX",xlab = "TAT")
+plot(df$AT,df$NOX,ylab = "NOX",xlab = "AT")
+plot(df$AP,df$NOX,ylab="NOX",xlab="AP")
+plot(df$AH,df$NOX,ylab = "NOX",xlab = "AH")
+```
+
+## Linear Model (ALL FOUR RANGES)
+```{r}
+# Low Range
+mod0.low=lm(NOX~AFDP+GTEP+CDP+TIT+TAT+AT+AP+AH+TEY,data = train_low)
+vif(mod0.low)
+mod1.low=lm(NOX~AFDP+GTEP+CDP+TAT+AT+AP+AH+TEY,data = train_low)
+vif(mod1.low)
+mod2.low=lm(NOX~AFDP+GTEP+CDP+TAT+AT+AP+AH,data = train_low)
+vif(mod2.low)
+mod3.low=lm(NOX~AFDP+GTEP+TAT+AT+AP+AH,data = train_low)
+vif(mod3.low)
+summary(mod3.low)
+step_low = stepAIC(mod3.low, direction='backward',scope=formula(mod3.low),trace=0)
+step_low$anova
+
+#mspe
+Ytest.pred = predict(step_low, newdata = test_low)
+mspe = mean((test_low$NOX - Ytest.pred)^2)
+mspe
+#R-squared
+y=test_low$NOX
+sst <- sum((y - mean(y))^2)
+sse <- sum((Ytest.pred - y)^2)
+rsq <- 1 - sse/sst
+rsq
+# Reg Range
+mod0.reg=lm(NOX~AFDP+GTEP+CDP+TIT+TAT+AT+AH+AP+TEY,data = train_reg)
+vif(mod0.reg)
+step_reg = stepAIC(mod0.reg, direction='backward',scope = formula(mod0.reg),trace=0)
+step_reg$anova
+mod.reg.fin=lm(NOX~AFDP+CDP+TIT+AT+AH+AP+TEY,data = train_reg)
+summary(mod.reg.fin)
+
+#mspe
+Ytest.pred = predict(mod.reg.fin, newdata = test_reg)
+mspe = mean((test_reg$NOX - Ytest.pred)^2)
+mspe
+#R-squared
+y=test_reg$NOX
+sst <- sum((y - mean(y))^2)
+sse <- sum((Ytest.pred - y)^2)
+rsq <- 1 - sse/sst
+rsq
+
+
+# High Range
+mod0.high=lm(NOX~AFDP+GTEP+CDP+TIT+TAT+AT+AP+AH+TEY,data = train_high)
+vif(mod0.high)
+mod1.high=lm(NOX~AFDP+GTEP+TIT+TAT+AT+AP+AH+TEY,data = train_high)
+vif(mod1.high)
+mod2.high=lm(NOX~AFDP+GTEP+TIT+TAT+AT+AP+AH,data = train_high)
+vif(mod2.high)
+mod3.high=lm(NOX~AFDP+TIT+TAT+AT+AP+AH,data = train_high)
+vif(mod3.high)
+summary(mod3.high)
+step_high = stepAIC(mod3.high, scope=formula(mod3.high), trace=0,direction='backward')
+step_high$anova
+mod.high.fin=lm(NOX~AFDP+TAT+AT+AP+AH,data = train_high)
+summary(mod.high.fin)
+
+#mspe
+Ytest.pred = predict(step_high, newdata = test_high)
+mspe = mean((test_high$NOX - Ytest.pred)^2)
+mspe
+#R-squared
+y=test_high$NOX
+sst <- sum((y - mean(y))^2)
+sse <- sum((Ytest.pred - y)^2)
+rsq <- 1 - sse/sst
+rsq
+
+# Extreme Range
+mod0.x=lm(NOX~AFDP+GTEP+CDP+TIT+TAT+AT+AP+AH+TEY,data = train_extreme)
+vif(mod0.x)
+mod1.x=lm(NOX~AFDP+GTEP+TIT+TAT+AT+AP+AH+TEY,data=train_extreme)
+vif(mod1.x)
+step_extreme = stepAIC(mod1.x, direction='backward',scope = formula(mod1.x),trace=0)
+step_extreme$anova
+fin.mod.x=lm(NOX~AFDP+TIT+TAT+AT+AP+TEY,data = train_extreme)
+summary(fin.mod.x)
+
+#mspe
+Ytest.pred = predict(fin.mod.x, newdata = test_extreme)
+mspe = mean((test_extreme$NOX - Ytest.pred)^2)
+mspe
+#R-squared
+y=test_extreme$NOX
+sst <- sum((y - mean(y))^2)
+sse <- sum((Ytest.pred - y)^2)
+rsq <- 1 - sse/sst
+rsq
+
+```
+
+## Ridge Model (ALL FOUR RANGES)
+```{r}
+# Low Range
+ridge.low = cv.glmnet(as.matrix(train_low[,c(1:9)]),train_low$NOX,alpha=0)
+Ytest.pred = predict(ridge.low, as.matrix(test_low[,c(1:9)]),s = "lambda.min")
+mspe = mean((test_low$NOX - Ytest.pred)^2)
+mspe
+
+ridge.mod.low = glmnet(train_low[,c(1:9)],train_low$NOX,alpha = 0,lambda=ridge.low$lambda.min)
+coef(ridge.mod.low)
+#rsq
+y=test_low$NOX
+sst <- sum((y - mean(y))^2)
+sse <- sum((Ytest.pred - y)^2)
+rsq <- 1 - sse/sst
+rsq
+# Reg Range
+ridge.reg = cv.glmnet(as.matrix(train_reg[,c(1:9)]),train_reg$NOX,alpha=0)
+Ytest.pred = predict(ridge.reg, as.matrix(test_reg[,c(1:9)]),s = "lambda.min")
+mspe = mean((test_reg$NOX - Ytest.pred)^2)
+mspe
+
+ridge.mod.reg = glmnet(train_reg[,c(1:9)],train_reg$NOX,alpha = 0,lambda=ridge.reg$lambda.min)
+coef(ridge.mod.reg)
+#R-squared
+y=test_reg$NOX
+sst <- sum((y - mean(y))^2)
+sse <- sum((Ytest.pred - y)^2)
+rsq <- 1 - sse/sst
+rsq
+# High Range
+ridge.high = cv.glmnet(as.matrix(train_high[,c(1:9)]),train_high$NOX,alpha=0)
+Ytest.pred = predict(ridge.high, as.matrix(test_high[,c(1:9)]),s = "lambda.min")
+mspe = mean((test_high$NOX - Ytest.pred)^2)
+mspe
+
+ridge.mod.high = glmnet(train_high[,c(1:9)],train_high$NOX,alpha = 0,lambda=ridge.high$lambda.min)
+coef(ridge.mod.high)
+#R-squared
+y=test_high$NOX
+sst <- sum((y - mean(y))^2)
+sse <- sum((Ytest.pred - y)^2)
+rsq <- 1 - sse/sst
+rsq
+# Extreme Range
+ridge.extreme = cv.glmnet(as.matrix(train_extreme[,c(1:9)]),train_extreme$NOX,alpha=0)
+Ytest.pred = predict(ridge.extreme, as.matrix(test_extreme[,c(1:9)]),s = "lambda.min")
+mspe = mean((test_extreme$NOX - Ytest.pred)^2)
+mspe
+
+ridge.mod.extreme = glmnet(train_extreme[,c(1:9)],train_extreme$NOX,alpha = 0,lambda=ridge.extreme$lambda.min)
+coef(ridge.mod.extreme)
+#R-squared
+y=test_extreme$NOX
+sst <- sum((y - mean(y))^2)
+sse <- sum((Ytest.pred - y)^2)
+rsq <- 1 - sse/sst
+rsq
+```
+
+## KNN Model (TWO RANGES)
+```{r}
+library(class)
+library(caret)
+library(kknn)
+control <- trainControl(method = "repeatedcv", 
+                        number = 5, 
+                        repeats = 10)
+set.seed(1)
+#Regular energy range
+knn.cvfit <- train(NOX ~ AT+AH+AP+AFDP+GTEP+CDP+TIT+TAT+TEY, method = "knn",
+                   data = train_reg,
+                   tuneGrid = data.frame(k = seq(1, 15, 1)),
+                   trControl = control)
+knn.cvfit
+knnpred = predict(knn.cvfit$finalModel, test_reg[,1:9], type="prediction")
+mean((knnpred-test_reg[,11])^2)
+
+#Extreme Energy Range
+knn.cvfit.x <- train(NOX ~ AT+AH+AP+AFDP+GTEP+CDP+TIT+TAT+TEY, method = "knn",
+                   data = train_extreme,
+                   tuneGrid = data.frame(k = seq(1, 15, 1)),
+                   trControl = control)
+knn.cvfit.x
+knnpred.x = predict(knn.cvfit.x$finalModel, newdata=test_extreme[,1:9])
+mean((knnpred.x-test_extreme[,11])^2)
+y=test_extreme$NOX
+sst <- sum((y - mean(y))^2)
+sse <- sum((knnpred.x - y)^2)
+rsq <- 1 - sse/sst
+rsq
+```
+
+## Random Forest Model (TWO RANGES)
+```{r}
+library(randomForest)
+#Regular Energy Range
+rffit = randomForest(NOX ~AT+AP+AH+AFDP+GTEP+CDP+TIT+TAT+TEY, data = train_reg, mtry = 5, nodesize = 5, importance=TRUE)
+rfpred = predict(rffit, test_reg)
+#mspe
+mean((rfpred - test_reg$NOX)^2)
+#R-squared
+y=test_reg$NOX
+sst <- sum((y - mean(y))^2)
+sse <- sum((rfpred - y)^2)
+rsq <- 1 - sse/sst
+rsq
+rffit$importance
+
+#Extreme Energy Range
+rffit.x = randomForest(NOX ~AT+AP+AH+AFDP+GTEP+CDP+TIT+TAT+TEY, data = train_extreme, mtry = 5, nodesize = 5,importance=TRUE)
+rfpred.x = predict(rffit.x, test_extreme)
+#mspe
+mean((rfpred.x - test_extreme$NOX)^2)
+#R-squared
+y=test_extreme$NOX
+sst <- sum((y - mean(y))^2)
+sse <- sum((rfpred.x - y)^2)
+rsq <- 1 - sse/sst
+rsq
+rffit.x$importance
+```
+
+# KNN
+```{r}
+traincv = trainControl(method = "repeatedcv",
+                       number = 5, repeats = 3)
+
+knnfit_low = train(NOX ~ AT+AP+AH+AFDP+GTEP+CDP+TIT+TAT+TEY, method = "knn",
+               data = train_low, tuneGrid = data.frame(k = seq(1, 15 ,2)),
+               trControl = traincv)
+
+
+knnfit_reg = train(NOX ~ AT+AP+AH+AFDP+GTEP+CDP+TIT+TAT+TEY, method = "knn",
+               data = train_reg, tuneGrid = data.frame(k = seq(1, 15 ,2)),
+               trControl = traincv)
+
+knnfit_high = train(NOX ~ AT+AP+AH+AFDP+GTEP+CDP+TIT+TAT+TEY, method = "knn",
+               data = train_high, tuneGrid = data.frame(k = seq(1, 15 ,2)),
+               trControl = traincv)
+
+knnfit_extreme = train(NOX ~ AT+AP+AH+AFDP+GTEP+CDP+TIT+TAT+TEY, method = "knn",
+               data = train_extreme, tuneGrid = data.frame(k = seq(1, 15 ,2)),
+               trControl = traincv)
+```
+```{r}
+library(ggpubr)
+k1 = ggplot(knnfit_low$results, aes(x = k, y = RMSE^2)) + 
+  geom_point(color = "blue") +
+  geom_line(color = "blue") +
+  ylab("MSPE") +
+  ggtitle("Low Energy Level") +
+  theme_bw() + 
+  theme(
+    panel.grid.minor = element_blank(),
+    panel.grid.major = element_blank()
+  )
+
+k2 = ggplot(knnfit_reg$results, aes(x = k, y = RMSE^2)) + 
+  geom_point(color = "blue") +
+  geom_line(color = "blue") +
+  ylab("MSPE") +
+  ggtitle("Typical Energy Level") +
+  theme_bw() + 
+  theme(
+    panel.grid.minor = element_blank(),
+    panel.grid.major = element_blank()
+  )
+
+
+k3 = ggplot(knnfit_high$results, aes(x = k, y = RMSE^2)) + 
+  geom_point(color = "blue") +
+  geom_line(color = "blue") +
+  ylab("MSPE") +
+  ggtitle("High Energy Level") +
+  theme_bw() + 
+  theme(
+    panel.grid.minor = element_blank(),
+    panel.grid.major = element_blank()
+  )
+
+k4 = ggplot(knnfit_extreme$results, aes(x = k, y = RMSE^2)) + 
+  geom_point(color = "blue") +
+  geom_line(color = "blue") +
+  ylab("MSPE") +
+  ggtitle("Extreme Energy Level") +
+  theme_bw() + 
+  theme(
+    panel.grid.minor = element_blank(),
+    panel.grid.major = element_blank()
+  )
+
+plot = ggarrange(k1, k2, k3, k4)
+annotate_figure(plot, top = text_grob("MSPE by K in ranges by energy level", 
+               color = "black", face = "bold", size = 14))
+```
+```{r}
+predk_low = predict(knnfit_low, newdata = test_low)
+predk_reg = predict(knnfit_reg, newdata = test_reg)
+predk_high = predict(knnfit_high, newdata = test_high)
+predk_extreme = predict(knnfit_extreme, newdata = test_extreme)
+```
+
+```{r}
+RMSE = function(y, y_eval, df){
+  SSE = sum((y_eval - y) ^ 2)
+  SST = sum((y - mean(y))^2)
+  R_square = 1 - SSE / SST
+  MSPE = SSE / nrow(df)
+  return(paste("R_square :" , R_square, "   ", "MSPE :", MSPE))
+}
+```
+
+```{r}
+RMSE(test_low$NOX, predk_low, test_low)
+RMSE(test_reg$NOX, predk_reg, test_reg)
+RMSE(test_high$NOX, predk_high, test_high)
+RMSE(test_extreme$NOX, predk_extreme, test_extreme)
+```
+
