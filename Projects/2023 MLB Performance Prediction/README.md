@@ -40,7 +40,7 @@ Predicted MLB batters’ performance for the 2023 season by analyzing historical
 
 - ggplot2: Data visualization.
 
-- Regression Techniques: Various methods including linear regression, ridge regression, and more.
+- Regression Techniques: Various methods including linear regression, ridge regression, RandomForest, XgBoost, and more.
 
 ## Project Outcomes
 - Successfully predicted MLB batters' performance for the upcoming season.
