@@ -1,7 +1,7 @@
 # Data Analytics Portfolio
 ***Seunggyun Shin***
 
-This repository illustrates my background in data analytics, showcasing my passion for data analytics, machine learning, and data-driven decision-making. Here, you will find a variety of projects and analyses that reflect my skills and experiences in this field. I have ensured that all materials comply with confidentiality agreements and maintain academic integrity. Projects related to companies have been excluded, and some information within projects has been hidden for these reasons.
+This repository illustrates my background in data analytics, showcasing my passion for data analytics, machine learning, and data-driven decision-making. Here, you will find a variety of projects and analyses that reflect my skills and experiences in this field. I have ensured that all materials comply with confidentiality agreements and maintain academic integrity. Projects including data from certain companies have been excluded, or some information within projects has been hidden for these reasons.
 
 &emsp;
 &emsp;
