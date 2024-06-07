@@ -1,0 +1,485 @@
+---
+title: "Project Report - Seunggyun Shin"
+author: "Seunggyun Shin"
+date: "2024-05-05"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, warning = F, message = F, echo = F, results='hide'}
+library(tidyverse)
+library(Lahman)
+library(boilerpipeR)
+library(RCurl)
+library(rJava)
+library(rvest)
+library(randomForest)
+library(caret)
+```
+
+
+<font size = "4"> ***Introduction*** </font>
+
+Before the 2024 Major League season, Shohei Otani and the LA Dodgers signed a $700 million contract, breaking Lionel Messi's record and becoming the biggest contract in the history of world sports. While there is no doubt about Shohei's outstanding talent, controversy surrounds the historical amount of his contract, as Shohei's salary is even larger than the total team salary of the Baltimore Orioles or the Oakland Athletics. Throughout this project, I am going to investigate the relationship between investment and success in the league, and whether Shohei's contract is reasonable or not.
+  
+
+<p style="text-align: center; font-size: 16px;">**Sports Contracts Size Ranking**</p>  
+
+|Name              |Organization      |Sport   |Size (USD) |Length   |
+|:-----------------|-----------------:|-------:|----------:|--------:|
+|Shohei Ohtani     |LA Dodgers        |Baseball|700,000,000|10 years |
+|Lionel Messi      |Barcelona         |Soccer  |674,000,000|4 years  |
+|Cristiano Ronaldo |Al Nassr          |Soccer  |536,336,818|2.5 years|
+|Patrick Mahomes   |Kansas City Chiefs|Football|450,000,000|10 years |
+|Karim Benzema     |Al-Ittihad        |Soccer  |447,302,608|2 years  |
+|Mike Trout        |LA Angels         |Baseball|426,500,000|12 years |
+|Canelo Álvarez    |DAZN              |Boxing  |365,000,000|5 years  |
+|Mookie Betts      |LA Dodgers        |Baseball|365,000,000|12 years |
+|Aaron Judge       |NY Yankees        |Baseball|360,000,000|9 years  |
+|Manny Machado     |San Diego Padres  |Baseball|350,000,000|11 years |
+
+<font size = "1"> Source: *Wikipedia (List of largest sports contracts)* </font>
+
+
+
+
+
+<font size = "4"> ***Literature Review*** </font>
+
+In an advance to the project, I conducted a research on articles and projects about the relationship between investments and performance in baseball.
+
+The relationship between money and wins in baseball has been a subject of debate since the publication of the *Moneyball* in 2003. While it is commonly believed that wealthy teams like NY Yankees and LA Dodgers have successful records in the league, small-market teams like Oakland Atheltics and the Tampa Bay Rays have shown that success can be achieved through other means, such as developing farm talent and using advanced metrics.
+
+Various studies have attempted to quantify the relationship between payroll and success in baseball, with estimates ranging from 20 percents more than half of a team's success being attributed to payroll. With the beginning of "Free Agent" in 1970s, to exceed opponents for talents, player salaries has significantly increased, outpacing the growth of median incomes and stock market.
+
+Analyzing team wins against normalized payroll data since 1977 showed a positive relationship between money spent and wins, but the correlation was not perfect. However, in fact, examining the long-term effects of money on team performance, consistent high payroll over time significantly impacts a team's success.
+
+The introduction of revenue-sharing mechanisms, such as Luxury Tax and other initiatives, enabled addressing the competitive imbalance caused by disparities in team revenues. These measures actually provided some effects, but could not completely level the playing field.
+
+Throughout the baseball history, with development of various strategies to effectively manage a team, the gap between high and low payroll teams had narrowed. However, the wealthiest teams still have a sufficient advantage when it comes to making the playoffs. The relationship between money and success in baseball remains a complex and ongoing issue.
+
+<font size = "1"> Source: *http://beneathdata.com/blog/does-money-buy-wins-in-baseball/* </font>
+
+
+
+
+<font size = "4"> ***Analysis Methods & Results*** </font>
+
+<font size = "3"> **Data** </font>
+
+**1. MLB Team Statistics (2003 ~ 2018)**
+```{r, message = F}
+#MLB team stat
+team = read_csv("mlbteamstats_20182003.csv")
+head(team, 5)
+```
+
+Dataset containing Major League team statistics from 2003 to 2018 was found from Kaggle. The data contains detailed statistics of each team by season, which is effective to extract insights about relationship between payroll and performance.
+
+
+**2. Salary Data**
+
+```{r, eval=F}
+#Salary Data (2023) Top 100
+url_salary = "https://www.spotrac.com/mlb/rankings/salary/"
+page_salary = read_html(url_salary)
+
+Name = page_salary %>%
+  html_nodes(xpath = '//*[@id="main"]/div/div[3]/div/table/tbody/tr/td[2]/div/div[2]/h3/a') %>%
+  html_text() %>%
+  trimws()
+
+Payroll = page_salary %>%
+  html_nodes(xpath = '//*[@id="main"]/div/div[3]/div/table/tbody/tr/td[7]/span') %>%
+  html_text() %>%
+  trimws()
+
+Age = page_salary %>%
+  html_nodes(xpath = '//*[@id="main"]/div/div[3]/div/table/tbody/tr/td[4]') %>%
+  html_text() %>%
+  trimws()
+
+df_salary_2023 = data.frame(Name, Age, Payroll)
+df_salary_2023 = df_salary_2023 %>%
+  mutate(Age = as.numeric(Age),
+         Payroll = as.numeric(gsub("[$,]", "", df_salary_2023$Payroll)))
+```
+
+
+The Major League player salary data was scraped from Spotrac.com and includes the top 100 players with the highest salaries by season. This data was then joined with player performance data to analyze and assess player performance based on payroll. However, the website was blocked a few days after I collected the data. Fortunately, the joined dataset was saved in my local environment.
+
+**3. WAR Data**
+
+```{r}
+#WAR Data
+url_war = c("http://africa.espn.com/mlb/war/leaders/_/year/2023/type/seasonal/alltime/false/count/1",
+            "http://africa.espn.com/mlb/war/leaders/_/year/2023/type/seasonal/alltime/false/count/51",
+            "http://africa.espn.com/mlb/war/leaders/_/year/2023/type/seasonal/alltime/false/count/101",
+            "http://africa.espn.com/mlb/war/leaders/_/year/2023/type/seasonal/alltime/false/count/151")
+
+war = function(url){
+  page = read_html(url)
+  node = html_nodes(page, "table")
+  table = html_table(node)[[1]]
+  colnames(table) = table[2, ]
+  table = table[-c(1,2), ]
+
+  table %>% select(c(PLAYER, WAR, WAA))
+}
+
+df_war = c()
+for (i in c(1: length(url_war))){
+  df_war = rbind(df_war, war(url_war[i]))
+}
+
+head(df_war, 5)
+```
+
+The Major League player WAR data was scraped from ESPN.com and includes the top 200 players with the highest WAR and WAA by season. WAR represents Wins Above Replacement, and WAA represents Wins Above Average.
+
+```{r, eval = F}
+#Join two datasets
+colnames(df_war)[1] = "Name"
+df_joined = df_war %>%
+  inner_join(df_salary_2023, by = "Name")
+```
+
+```{r, echo = F}
+#Load Joined Dataset
+df_joined = read.csv("df_joined.csv")
+```
+
+
+
+<font size = "3"> **Research Question 1** </font>
+
+- *Does More Money Mean More Wins?*
+
+```{r, echo = F,fig.align='center'}
+#Spending per win (Entire League)
+team %>%
+  separate(YearTeam, into = c("Year", "Team"), sep = " ") %>%
+  group_by(Year) %>%
+  summarise(per_win = sum(salary) / sum(W)) %>%
+  ggplot(aes(x = Year, y = per_win)) +
+  geom_point(color = "blue") +
+  labs(title = "Spending per win (Entire Teams)",
+       x = "Year",
+       y = "Per win")
+```
+
+To address the first research question, "Does more money mean more wins?", we examined the trend of spending in the league. It was observed that the average spending of teams per win in Major League Baseball has been steadily and significantly increasing. The graph illustrates that the average amount of money spent per win doubled from 2003 to 2017. This supports the findings from the literature review, indicating that teams are indeed spending more money to achieve more wins than their competitors.
+
+There are multiple reasons why teams are paying massive payrolls to players, including marketing, long-term investment, talent acquisition, performance, and gaining a competitive advantage. However, for this project, I will only focus on the performance aspect of players. 
+
+Interesting fact to note before examining the relationship between payroll and winning rate: at this point, the Baltimore Orioles have a higher winning rate than the LA Dodgers, despite the Orioles' total team salary being lower than that of Shohei Ohtani alone.
+
+```{r, warning = F, echo = F, error = F, message = F,fig.align='center'}
+plt1  =team %>%
+  separate(YearTeam, into = c("Year", "Team"), sep = " ") %>%
+  filter(Year == 2003) %>%
+  group_by(Team) %>%
+  summarise(Win_rate = sum(W) / (sum(W) + sum(L)),
+            salary = sum(salary)) %>%
+  ggplot(aes(x = salary, y = Win_rate, label = Team)) +
+  geom_point(color = "red") +
+  geom_text(hjust = -0.25, vjust = 0.25, size = 2.5) +
+  geom_smooth(method = "lm", col = "black") +
+  labs(title = "Salary vs Winning Rate 2003",
+       x = "Salary",
+       y = "Winning Rate")
+
+
+plt2 = team %>%
+  separate(YearTeam, into = c("Year", "Team"), sep = " ") %>%
+  filter(Year == 2009) %>%
+  group_by(Team) %>%
+  summarise(Win_rate = sum(W) / (sum(W) + sum(L)),
+            salary = sum(salary)) %>%
+  ggplot(aes(x = salary, y = Win_rate, label = Team)) +
+  geom_point(color = "red") +
+  geom_text(hjust = -0.25, vjust = 0.25, size = 2.5) +
+  geom_smooth(method = "lm", col = "black") +
+  labs(title = "Salary vs Winning Rate 2009",
+       x = "Salary",
+       y = "Winning Rate")
+
+plt3 = team %>%
+  separate(YearTeam, into = c("Year", "Team"), sep = " ") %>%
+  filter(Year == 2014) %>%
+  group_by(Team) %>%
+  summarise(Win_rate = sum(W) / (sum(W) + sum(L)),
+            salary = sum(salary)) %>%
+  ggplot(aes(x = salary, y = Win_rate, label = Team)) +
+  geom_point(color = "red") +
+  geom_text(hjust = -0.25, vjust = 0.25, size = 2.5) +
+  geom_smooth(method = "lm", col = "black") +
+  labs(title = "Salary vs Winning Rate 2014",
+       x = "Salary",
+       y = "Winning Rate")
+
+plt4 = team %>%
+  separate(YearTeam, into = c("Year", "Team"), sep = " ") %>%
+  filter(Year == 2018) %>%
+  group_by(Team) %>%
+  summarise(Win_rate = sum(W) / (sum(W) + sum(L)),
+            salary = sum(salary)) %>%
+  ggplot(aes(x = salary, y = Win_rate, label = Team)) +
+  geom_point(color = "red") +
+  geom_text(hjust = -0.25, vjust = 0.25, size = 2.5) +
+  geom_smooth(method = "lm", col = "black") +
+  labs(title = "Salary vs Winning Rate 2018",
+       x = "Salary",
+       y = "Winning Rate")
+
+
+gridExtra::grid.arrange(plt1, plt2, plt3, plt4, nrow = 2, ncol = 2)
+```
+
+
+So, to the question *"Does more money mean more wins?"* the answer is partially yes. Inspired by a phrase from the movie **Moneyball**, *"The Yankees spent 1.4 million per win, you paid 260k,"* I visualized the relationship between total salary and the winning rate of each team by season. There was significant evidence that teams which spend more money are more likely to have higher winning rates. However, as the literature review stated, the correlation was not perfect, and there were always teams that had outstanding records even with comparatively low spending. I focused on those teams by season and analyzed what they have in common.
+
+
+```{r}
+#2018
+team_2018 = team %>%
+  separate(YearTeam, into = c("Year", "Team"), sep = " ") %>%
+  filter(Year == 2018) %>%
+  mutate(response = if_else((`W-L%` > 0.50) & (salary < mean(salary)),
+                            1, 0)) %>%
+  filter(`W-L%` > 0.5) %>%
+  select(`RA/G`, DefEff, E, DP, ERA, HR, BB, SO, BA, OBP, SLG, LOB, response) %>%
+  mutate(RAG = `RA/G`) %>%
+  select(!`RA/G`)
+
+rf_2018 = randomForest(as.factor(response) ~ . , data = team_2018)
+
+
+confusionMatrix(as.factor(predict(rf_2018, team_2018)), as.factor(team_2018$response), positive = "1")$table
+
+
+#2017
+team_2017 = team %>%
+  separate(YearTeam, into = c("Year", "Team"), sep = " ") %>%
+  filter(Year == 2017) %>%
+  mutate(response = if_else((`W-L%` > 0.50) & (salary < mean(salary)),
+                            1, 0)) %>%
+  filter(`W-L%` > 0.5) %>%
+  select(`RA/G`, DefEff, E, DP, ERA, HR, BB, SO, BA, OBP, SLG, LOB, response) %>%
+  mutate(RAG = `RA/G`) %>%
+  select(!`RA/G`)
+
+rf_2017 = randomForest(as.factor(response) ~ . , data = team_2017)
+
+
+confusionMatrix(as.factor(predict(rf_2017, team_2017)), as.factor(team_2017$response), positive = "1")$table
+
+#2016
+team_2016 = team %>%
+  separate(YearTeam, into = c("Year", "Team"), sep = " ") %>%
+  filter(Year == 2016) %>%
+  mutate(response = if_else((`W-L%` > 0.50) & (salary < mean(salary)),
+                            1, 0)) %>%
+  filter(`W-L%` > 0.5) %>%
+  select(`RA/G`, DefEff, E, DP, ERA, HR, BB, SO, BA, OBP, SLG, LOB, response) %>%
+  mutate(RAG = `RA/G`) %>%
+  select(!`RA/G`)
+
+rf_2016 = randomForest(as.factor(response) ~ . , data = team_2016)
+
+
+confusionMatrix(as.factor(predict(rf_2016, team_2016)), as.factor(team_2016$response), positive = "1")$table
+```
+
+By season, only teams with a winning rate over 50 percent were filtered, and those teams that spent less than the league-average salary were labeled 1. Teams that spent more than the league-average salary were labeled 0. Random forest models were created with a 100 percent fit, and variable importance was used to investigate influential variables for distinguishing cost-effective teams.
+
+```{r, echo = F,fig.align='center'}
+par(mfrow = c(2,2))
+
+varImpPlot(rf_2018, main = 2018)
+varImpPlot(rf_2017, main = 2017)
+varImpPlot(rf_2016, main = 2016)
+```
+
+Even though references for only three seasons are provided in this report, the variable importance for all seasons was investigated. While there were some differences between seasons, there were similar tendencies; the most significant features that distinguish cost-effective teams were defensive assessments such as the number of double plays, defensive effectiveness, and errors.
+
+```{r, fig.align='center', echo = F}
+plt1 = team_2017 %>%
+  group_by(response) %>%
+  summarise(DP = mean(DP)) %>%
+  ggplot(aes(x = as.factor(response), y = DP, fill = as.factor(response))) +
+  geom_bar(stat = "identity", width = 0.5) +
+  theme(legend.position = "none") +
+  labs(title = "Average Double Plays 2017",
+       y = "Double Plays",
+       x = "Team Category")
+
+plt2 = team_2017 %>%
+  group_by(response) %>%
+  summarise(E = mean(E)) %>%
+  ggplot(aes(x = as.factor(response), y = E, fill = as.factor(response))) +
+  geom_bar(stat = "identity", width = 0.5) +
+  theme(legend.position = "none") +
+  labs(title = "Average Errors 2017",
+       y = "Errors",
+       x = "Team Category")
+
+gridExtra::grid.arrange(plt1, plt2, nrow = 1, ncol = 2)
+```
+
+Visualizations show that cost-effective teams (labeled 1) had a higher average of double plays and slightly fewer errors on average. However, these tendencies are not sufficiently consistent across seasons, and numeric statistics alone are less reliable as they can be affected by multiple factors such as pitcher qualities and ground ball percentage. Therefore, I focused on defensive effectiveness, which is used to evaluate team defense by determining the rate of times batters reach base on balls put in play.
+
+```{r, warning = F, message = F, echo = F, fig.align='center'}
+plt1 = team %>%
+  separate(YearTeam, into = c("Year", "Team"), sep = " ") %>%
+  filter(Year == 2005) %>%
+  mutate(response = if_else((`W-L%` > 0.50) & (salary < mean(salary)),
+                            1, 0)) %>%
+  filter(`W-L%` > 0.5) %>%
+  mutate(cost_per_win = salary / W) %>%
+  ggplot(aes(x = salary, y = DefEff, color = as.factor(response))) +
+  geom_point() +
+  scale_fill_manual(values = c("0" = "blue", "1" = "red")) +
+  labs(title = "Salary vs Defensive Efficiency (2005)",
+       color = "Team Category")
+
+plt2 = team %>%
+  separate(YearTeam, into = c("Year", "Team"), sep = " ") %>%
+  filter(Year == 2010) %>%
+  mutate(response = if_else((`W-L%` > 0.50) & (salary < mean(salary)),
+                            1, 0)) %>%
+  filter(`W-L%` > 0.5) %>%
+  mutate(cost_per_win = salary / W) %>%
+  ggplot(aes(x = salary, y = DefEff, color = as.factor(response))) +
+  geom_point() +
+  scale_fill_manual(values = c("0" = "blue", "1" = "red")) +
+  labs(title = "Salary vs Defensive Efficiency (2010)",
+       color = "Team Category")
+
+
+plt3 = team %>%
+  separate(YearTeam, into = c("Year", "Team"), sep = " ") %>%
+  filter(Year == 2013) %>%
+  mutate(response = if_else((`W-L%` > 0.50) & (salary < mean(salary)),
+                            1, 0)) %>%
+  filter(`W-L%` > 0.5) %>%
+  mutate(cost_per_win = salary / W) %>%
+  ggplot(aes(x = salary, y = DefEff, color = as.factor(response))) +
+  geom_point() +
+  scale_fill_manual(values = c("0" = "blue", "1" = "red")) +
+  labs(title = "Salary vs Defensive Efficiency (2013)",
+       color = "Team Category")
+
+
+plt4 = team %>%
+  separate(YearTeam, into = c("Year", "Team"), sep = " ") %>%
+  filter(Year == 2018) %>%
+  mutate(response = if_else((`W-L%` > 0.50) & (salary < mean(salary)),
+                            1, 0)) %>%
+  filter(`W-L%` > 0.5) %>%
+  mutate(cost_per_win = salary / W) %>%
+  ggplot(aes(x = salary, y = DefEff, color = as.factor(response))) +
+  geom_point() +
+  scale_fill_manual(values = c("0" = "blue", "1" = "red")) +
+  labs(title = "Salary vs Defensive Efficiency (2018)",
+       color = "Team Category")
+
+gridExtra::grid.arrange(plt1, plt2, plt3, plt4, nrow = 2, ncol = 2)
+```
+
+
+Throughout baseball history, those cost-effective teams (labeled 1) have consistently shown significantly better defensive efficiency. Considering that the comparison group consists of teams with substantial funding and good records, this was an interesting result.
+
+Even though baseball is a very flexible, interactive, and complex sport that is difficult to be answered with simple A or B questions, the fact that this tendency was observed in most seasons, and that offensive players receive more attention than defensive players in most sports, suggests that investing in defensive players is more cost-effective in roster management.
+
+
+<font size = "3"> **Research Question 2** </font>
+
+- *Is Shohei Ohtani's historical contract reasonable?*
+
+For the second question, baseball statistics called WAR and WAA, which represent Wins Above Replacement and Wins Above Average, were leveraged. Shohei's WAR was 10, and his WAA was about 7.4, which are exceptionally dominating numbers. These statistics briefly mean that Shohei can generate 10 more wins than a top Triple-A level player and 7 more wins than the average Major League player.
+
+```{r, message = F, error = F, echo = F, fig.align='center'}
+df_joined %>%
+  arrange(desc(WAR)) %>%
+  head(7) %>%
+  ggplot(aes(x = Name, y = WAR)) +
+  geom_bar(stat = "identity", fill = "darkblue") +
+  theme(axis.text.x = element_text(size = 8)) +
+  labs(title = "2023 Season WAR")
+```
+
+```{r, message = F, error = F, echo = F, fig.align='center'}
+df_joined %>%
+  arrange(desc(WAA)) %>%
+  head() %>%
+  ggplot(aes(x = Name, y = WAA)) +
+  geom_bar(stat = "identity", fill = "darkgreen") +
+  theme(axis.text.x = element_text(size = 8)) +
+  labs(title = "2023 Season WAA")
+```
+
+Using these statistics, I calculated how much additional cost a team should pay per win to players, assuming that the average salary for an MLB player is 4.5 million USD. The plots illustrate 43 players who are both in the Top 200 for WAR and the Top 100 for Salary, which can be called All-Star level players.
+
+
+```{r, results='hide', echo = F}
+Average_salary = 4500000
+df_joined = df_joined %>%
+  mutate(payroll_minus_average = Payroll.2024 - Average_salary) %>%
+  mutate(add_cost_per_win_mil = payroll_minus_average / (WAA * 1000000)) %>%
+  mutate(add_cost_per_win_WAR_mil = Payroll.2024 / (WAR * 1000000)) 
+
+
+df_joined = df_joined %>%
+  mutate(Shohei = if_else(Name == "Shohei Ohtani", "Shohei", "Other Players"))
+```
+
+```{r, echo = F, fig.align='center'}
+plt1 = ggplot(df_joined, aes(y = add_cost_per_win_WAR_mil, x = WAR, color = Shohei)) +
+  geom_point() +
+  scale_color_manual(values = c("black", "red"),
+                     name = "") +
+  labs(x = "WAR",
+       y = "Additional cost (Million USD)",
+       title = "Additional Cost per win based on WAR")
+
+plt2 = ggplot(df_joined, aes(y = add_cost_per_win_mil, x = WAA, color = Shohei)) +
+  geom_point() +
+  scale_color_manual(values = c("black", "red"),
+                     name = "") +
+  labs(x = "WAA",
+       y = "Additional cost (Million USD)",
+       title = "Additional Cost per win based on WAA")
+
+plt1
+plt2
+```
+
+
+According to the plots, the LA Dodgers are paying Shohei 7 million USD for an additional win expected based on WAR and 8.8 million USD based on WAA. The additional cost per win was in the mid-range compared to other All-Star level players. 
+
+Based on this result, it is hard to claim that Shohei's contract is expensive, considering his outstanding performance and relatively moderate additional cost per win compared to other All-Star level players.
+
+
+
+<font size = "4"> ***Discussion*** </font>
+
+The insights of this analysis highlights relationship between team spending and performance in Major League Baseball. I first investigated the trend of spending in the league and found a significant increase in the average amount of money spend per win from 2003 to 2017. This supports the literature review that teams are investing more money to achieve better results.
+
+However, the analysis revealed that the correlation between spending and winning is not perfect. While there is a significant evidence suggesting that teams spending more money are more likely to have higher winning rates, there are also instances where teams with comparatively low spending achieve outstanding records such as Baltimore. By focusing on those cost-effective teams, I could identify that defensive effectiveness as a crucial factor that distinguishes them from others. 
+
+Throughout baseball history, cost-effective teams consistently showed good defensive efficiency indicating that investing in defensive players can be more cost-effective in roster management. This finding challenges the conventional spotlights on offensive players.
+
+For the second research question, the historical contract of Shohei Ohtani was evaluated based on his performance, leveraging baseball statistics WAR and WAA. The analysis showed that Shohei's performance is exceptional, and the additional cost per win associates with his contract was in the mid-range compared to other All-Star level players. This result only contains aspect of performance that ,if multiple aspects such as marketing and business is considered additionally, it is possible to claim that LA Dodgers made reasonable contract with the historical player in baseball history.
+
+
+
+
+<font size = "4"> ***Conclusion*** </font>
+
+In conclusion, this analysis provides valuable insights into contemporary investment trends in baseball. While there is a general trend suggesting that teams spending more money are more likely to achieve better results, the correlation between spending and winning is not perfect. Although this controversy cannot be simply answered, the analysis results offer sufficient and valuable evidence for further analysis to manage teams cost-effectively by focusing on defensive aspects of player performance.
+
+Moreover, while investing a massive amount of money in a star player is not always the answer for the best outcome, the analysis of Shohei Ohtani's historical contract demonstrates that his contract is reasonable when considering the additional cost per win compared to other All-Star level players.Given that professional baseball teams are enterprises, considering the potential income Shohei can bring to the team provides exceptional and additional evidence to support the claim that the contract is rational within the current trend in baseball regarding star players.
