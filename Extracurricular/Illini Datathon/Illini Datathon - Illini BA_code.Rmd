@@ -1,0 +1,443 @@
+---
+title: "Illini Datathon - Illini BA 2"
+author: "Seunggyun Shin"
+date: "2024-03-23"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, message = F, error = F}
+library(tidyverse)
+library(fastDummies)
+library(lubridate)
+library(randomForest)
+```
+
+```{r, message = F, error = F}
+df1 = read_csv("Recall1.csv")
+df2 = read_csv("Recall2.csv")
+```
+
+```{r}
+df = rbind(df1, df2)
+```
+
+
+```{r}
+df = df %>%
+  #Whether call transferred or not
+  mutate(TR = if_else(grepl("TR$", mos), 1, 0)) %>%
+  group_by(date, serial, reason) %>%
+  mutate(cause_recall = if_else(
+    (N != 1) & (call_n != max(call_n)), 1, 0
+  ))
+```
+
+```{r}
+df = df %>%
+  mutate(resolved = if_else(resolved == "resolved", 1, 0))
+```
+
+``{r}
+#1 - Cause Recall / Transfer -> Focus
+#2 - Cause Recall / No Transfer -> Not a problem
+#3 - Did not Cause Recall / Transfer -> May Be
+#4 - Did not Cause Recall / No Transfer -> Not a problem
+df = df %>%
+  mutate(recall_transfer = if_else(
+    cause_recall == 1 & TR == 1, 1, if_else(
+      cause_recall == 1 & TR != 1, 2, if_else(
+        cause_recall != 1 & TR == 1, 3, 4
+        )
+      )
+    )
+  )
+``
+
+```{r}
+df %>%
+  group_by(recall_transfer) %>%
+  summarise(N = n())
+```
+
+```{r}
+65663 / 1798798
+```
+
+```{r}
+df %>%
+  filter(recall_transfer == 1) %>%
+  group_by(retailer_code) %>%
+  summarise(N = n(),
+            serial = n_distinct(serial)) %>%
+  mutate(prop = round(N / sum(N), 2)) %>%
+  arrange(desc(prop))
+```
+
+```{r}
+df %>%
+  group_by(retailer_code) %>%
+  summarise(N = n(),
+            serial = n_distinct(serial)) %>%
+  mutate(prop = round(N / sum(N), 2)) %>%
+  arrange(desc(prop))
+```
+
+
+```{r}
+df %>%
+  filter(retailer_code %in% c("A", "a", "B", "b", "D") & recall_transfer == 1) %>%
+  group_by(reason) %>%
+  summarise(N = n()) %>%
+  mutate(prop = round(N / sum(N), 2)) %>%
+  arrange(desc(prop))
+```
+
+```{r}
+df %>%
+  filter(retailer_code %in% c("A", "a", "B", "b", "D") & recall_transfer == 1) %>%
+  separate_rows(mos, sep = " ") %>%
+  filter(mos != "IA" & mos != "TR") %>%
+  group_by(mos) %>%
+  summarise(N = n()) %>%
+  mutate(prop = round(N / sum(N), 2)) %>%
+  arrange(desc(prop))
+```
+
+```{r}
+#Among recall_transfer 1, what comes before TR
+df %>%
+  filter(recall_transfer == 1) %>%
+  mutate(before_TR = substr(mos, nchar(mos) -4,
+                            nchar(mos) - 3)) %>%
+  group_by(before_TR) %>%
+  summarise(N = n()) %>%
+  mutate(prop = round(N / sum(N), 2)) %>%
+  arrange(desc(prop))
+  
+```
+
+
+```{r}
+#Transferred & Resolved but recall...?
+df %>%
+  filter(TR == 1 & resolved == 1) %>%
+  mutate(before_TR = substr(mos, nchar(mos) -4,
+                            nchar(mos) - 3)) %>%
+  filter(before_TR %in% c("PP", "PT")) %>%
+  group_by(cause_recall) %>%
+  summarise(N = n()) %>%
+  mutate(prop = N / sum(N))
+```
+
+```{r}
+df %>%
+  group_by(TR, cause_recall, resolved) %>%
+  summarise(N = n())
+```
+
+``{r}
+#Transferred proportion by call reason
+df %>%
+  filter(reason != "IA") %>%
+  group_by(reason) %>%
+  summarise(N = n(),
+            TR_prop = sum(TR) / N) %>%
+  arrange(desc(TR_prop)) %>%
+  filter(N > 1000)
+``
+```{r}
+df = df %>%
+  mutate(mos_len = length(str_split(mos, " ")[[1]]))
+```
+
+
+
+```{r}
+df_TR = df %>%
+  group_by(TR) %>%
+  summarise(N = n()) %>%
+  mutate(prop = N / sum(N))
+```
+
+```{r}
+#Transferred plot
+ggplot(df_TR, aes(x = "", y = prop, fill = as.factor(TR))) +
+  geom_bar(stat = "identity") +
+  coord_polar("y", start = 0) +
+  theme_void() +
+  labs(fill = "",
+       title = "Proportion of calls transferred")
+```
+
+```{r}
+df_TR2 = df %>%
+  filter(TR == 1) %>%
+  group_by(resolved) %>%
+  summarise(N = n())
+
+df_TR2$resolved[df_TR2$resolved == 0] = "Connected to Rep"
+df_TR2$resolved[df_TR2$resolved == 1] = "Not Connected"
+```
+
+```{r}
+df_TR2 = df_TR2 %>%
+  mutate(prop = N / sum(N))
+
+df_TR2
+```
+
+
+```{r}
+ggplot(df_TR2, aes(x = "", y = prop, fill = as.factor(resolved))) +
+  geom_bar(stat = "identity") +
+  coord_polar("y", start = 0) +
+  scale_fill_manual(values = c("skyblue", "lightgreen")) +
+  theme_void() +
+  labs(fill = "",
+       title = "Proportion among calls transferred")
+```
+
+``{r}
+#0 - Did not caused recall
+#1 - caused recall (Talk X)
+#2 - caused recall (Talk O)
+df = df %>%
+  mutate(caused_recall = if_else(cause_recall == 1 &
+                                         resolved == 0, 2, 
+                                 if_else(cause_recall == 1 &
+                                           resolved == 1, 1, 0)
+                                 ))
+``
+
+
+```{r}
+df %>%
+  group_by(cause_recall, resolved) %>%
+  summarise(N = n()) %>%
+  mutate(prop = N / sum(N))
+
+```
+
+```{r}
+df_call_n = df %>%
+  group_by(date, serial, reason) %>%
+  summarise(N = n())
+```
+```{r}
+df_call_n = df_call_n %>%
+  filter(N > 1) 
+```
+
+```{r}
+sum(table(df_call_n$N)[1:3]) / sum(table(df_call_n$N))
+```
+
+```{r}
+0.0566*0.256
+```
+```{r}
+df %>%
+  filter(cause_recall == "1") %>%
+  group_by(reason) %>%
+  summarise(N = n()) %>%
+  mutate(prop = round(N / sum(N), 2)) %>%
+  arrange(desc(N))
+```
+
+```{r}
+df_TR_1 = df %>%
+  filter(TR == 1)
+
+df_TR_0 = df %>%
+  filter(TR == 0)
+```
+
+```{r}
+df_TR_1 = df_TR_1 %>%
+  mutate(before_end = substr(mos, nchar(mos) -4,
+                            nchar(mos) - 3))
+```
+
+```{r}
+df_TR_0 = df_TR_0 %>%
+    mutate(before_end = substr(mos, nchar(mos) - 1,
+                            nchar(mos) - 0))
+```
+
+```{r}
+df = rbind(df_TR_1, df_TR_0)
+```
+
+```{r}
+#find frequent mos (occurs more than 3 percent)
+df_mos_prop = df %>%
+  ungroup() %>%
+  select(mos) %>%
+  separate_rows(mos, sep = " ") %>%
+  group_by(mos) %>%
+  filter(mos != "IA" & mos != "TR") %>%
+  summarise(N = n()) %>%
+  mutate(prop = round(N / nrow(df), 2))
+```
+```{r}
+df_mos_prop = df_mos_prop %>% filter(prop >= 0.03)
+unique(df_mos_prop$mos)
+```
+
+
+
+```{r}
+df_mos_binary = df %>%
+  ungroup() %>%
+  select(mos) %>%
+  mutate(mos_mt = if_else(str_detect(mos, "mt"), 1, 0),
+         mos_nl = if_else(str_detect(mos, "nl"), 1, 0),
+         mos_PI = if_else(str_detect(mos, "PI"), 1, 0),
+         mos_PP = if_else(str_detect(mos, "PP"), 1, 0),
+         mos_PT = if_else(str_detect(mos, "PT"), 1, 0),
+         mos_RS = if_else(str_detect(mos, "RS"), 1, 0),
+         mos_TA = if_else(str_detect(mos, "TA"), 1, 0),
+         mos_TS = if_else(str_detect(mos, "TS"), 1, 0),
+         mos_MR = if_else(str_detect(mos, "MR"), 1, 0),
+         mos_Mr = if_else(str_detect(mos, "Mr"), 1, 0),
+         mos_mp = if_else(str_detect(mos, "mp"), 1, 0),
+         mos_mn = if_else(str_detect(mos, "mn"), 1, 0),
+         mos_mm = if_else(str_detect(mos, "mm"), 1, 0),
+         mos_BA = if_else(str_detect(mos, "BA"), 1, 0),
+         mos_AT = if_else(str_detect(mos, "AT"), 1, 0),
+         mos_AA = if_else(str_detect(mos, "AA"), 1, 0)
+         )
+```
+
+```{r}
+df_mos_binary = df_mos_binary %>% select(!mos)
+```
+
+```{r}
+df_modeling = df %>%
+  ungroup() %>%
+  select(!c(timestamp, call_key, date, serial, mos, N, call_n,
+            before_end))
+```
+
+```{r}
+df_modeling = cbind(df_modeling, df_mos_binary)
+```
+
+```{r}
+df_modeling
+```
+
+
+
+**Patterns in transferred call**
+
+```{r}
+#sample
+index = sample(nrow(df_modeling), nrow(df_modeling) * 0.1, replace = F)
+df_modeling_sample = df_modeling[index, ]
+```
+
+
+```{r}
+rf = randomForest(as.factor(TR) ~ . - resolved - cause_recall, data = df_modeling_sample)
+```
+
+```{r}
+rf_pred = predict(rf, newdata = df_modeling_sample)
+```
+```{r}
+rf$importance
+```
+
+```{r}
+library(caret)
+```
+
+
+```{r}
+confusionMatrix(as.factor(df_modeling_sample$TR), rf_pred, positive = "1")
+```
+```{r}
+varImpPlot(rf, cex = 0.7, col = "black", pch = 19)
+```
+
+```{r}
+df_modeling %>%
+  group_by(mos_len) %>%
+  summarise(avg = mean(TR)) %>%
+  ggplot(aes(x = mos_len, y = avg)) +
+  geom_line(col = "darkblue", size = 1.5) +
+  labs(x = "mos length",
+       y = "Transfer probability") +
+  theme_minimal()
+```
+```{r}
+df_before_end = df %>%
+  filter(TR == 1) %>%
+  group_by(before_end) %>%
+  summarise(N = n()) %>%
+  mutate(prop = round(N / nrow(df), 2)) %>%
+  arrange(desc(prop))
+```
+
+```{r}
+df_before_end %>%
+  head(7)
+```
+```{r}
+df_modeling_sample
+```
+
+```{r}
+rf2 = randomForest(as.factor(cause_recall) ~ ., data = df_modeling_sample)
+```
+
+```{r}
+varImpPlot(rf2, cex = 0.5, col = "black", pch = 19)
+
+```
+```{r}
+rf_pred2 = predict(rf2, newdata = df_modeling_sample)
+confusionMatrix(as.factor(df_modeling_sample$cause_recall), rf_pred2, positive = "1")
+```
+
+```{r}
+df %>%
+  filter(N > 1) %>%
+  group_by(retailer_code) %>%
+  summarise(N = n()) %>%
+  arrange(desc(N)) %>%
+  ungroup() %>%
+  mutate(prop = round(N / sum(N), 2))
+```
+
+```{r}
+df_retailer_recall = df %>%
+  group_by(retailer_code) %>%
+  summarise(recall_prop = sum(cause_recall) / n()) %>%
+  arrange(desc(recall_prop)) 
+```
+
+```{r}
+df_retailer_recall = df_retailer_recall %>%
+  head(10)
+```
+
+```{r}
+df_retailer_recall
+```
+
+```{r}
+ggplot(df_retailer_recall, aes(x = retailer_code, y = recall_prop)) +
+  geom_bar(stat = "identity", fill = "brown") +
+  labs(x = "Retailer Code",
+       y = "Re-call probability") +
+  theme_minimal() +
+  ylim(c(0, 0.15))
+```
+
